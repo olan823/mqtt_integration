@@ -1,11 +1,22 @@
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import frappe
 from frappe import _
+from mqtt_integration import __version__
 
 
 ALLOWED_ROLES = {"MQTT User", "System Manager"}
 DEFAULT_CONSOLE_URL = "/assets/mqtt_integration/mqtt/index.html"
+
+
+def _with_release_version(value):
+    if not value:
+        return ""
+
+    parsed = urlparse(value)
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    query["v"] = __version__
+    return urlunparse(parsed._replace(query=urlencode(query)))
 
 
 def _validate_broker_url(value):
@@ -34,7 +45,7 @@ def get_console_settings():
         frappe.throw(_("You are not permitted to open the MQTT console."), frappe.PermissionError)
 
     return {
-        "console_url": DEFAULT_CONSOLE_URL,
+        "console_url": _with_release_version(DEFAULT_CONSOLE_URL),
         "broker_url": _validate_broker_url(
             frappe.conf.get("mqtt_broker_websocket_url", "")
         ),
@@ -47,7 +58,9 @@ def get_dashboard_settings():
         frappe.throw(_("You are not permitted to open the MQTT dashboard."), frappe.PermissionError)
 
     return {
-        "dashboard_url": _validate_dashboard_url(
-            frappe.conf.get("mqtt_bifromq_dashboard_url", "")
+        "dashboard_url": _with_release_version(
+            _validate_dashboard_url(
+                frappe.conf.get("mqtt_bifromq_dashboard_url", "")
+            )
         )
     }

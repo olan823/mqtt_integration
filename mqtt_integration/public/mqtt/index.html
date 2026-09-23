@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+                                                               <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -478,8 +478,8 @@
 
         .page {
             display: grid;
-            grid-template-columns: 240px minmax(0, 1fr);
-            grid-template-rows: 62px minmax(0, 1fr);
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-rows: 62px 54px minmax(0, 1fr);
             min-height: 100vh;
         }
 
@@ -488,20 +488,18 @@
             top: 0;
             z-index: 900;
             grid-column: 1;
-            grid-row: 1 / -1;
-            align-self: start;
+            grid-row: 1;
             display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            justify-content: flex-start;
-            gap: 14px;
-            width: 240px;
-            height: 100vh;
-            padding: 10px 12px 16px;
-            border-right: 1px solid #e5e7eb;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            width: 100%;
+            height: 62px;
+            padding: 8px 20px;
+            border-bottom: 1px solid #e5e7eb;
             background: #f8f9fa;
             color: var(--text);
-            overflow-y: auto;
         }
 
         .brand {
@@ -540,16 +538,26 @@
 
         .side-nav {
             display: flex;
-            flex-direction: column;
-            gap: 3px;
+            flex: 1 1 auto;
+            flex-direction: row;
+            justify-content: center;
+            gap: 4px;
+            min-width: 0;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .side-nav::-webkit-scrollbar {
+            display: none;
         }
 
         .side-nav-link {
             display: flex;
             align-items: center;
-            gap: 10px;
+            flex: 0 0 auto;
+            gap: 6px;
             min-height: 36px;
-            padding: 7px 9px;
+            padding: 7px 11px;
             border: 1px solid transparent;
             border-radius: 8px;
             color: #374151;
@@ -570,14 +578,7 @@
         }
 
         .side-nav-icon {
-            display: grid;
-            width: 18px;
-            height: 18px;
-            flex: 0 0 18px;
-            place-items: center;
-            color: #5f6875;
-            font-size: 9px;
-            font-weight: 700;
+            display: none;
         }
 
         .side-nav-label {
@@ -585,16 +586,16 @@
         }
 
         .toolbar {
-            display: grid;
-            gap: 8px;
-            width: 100%;
-            margin-top: auto;
-            padding-top: 14px;
-            border-top: 1px solid #e5e7eb;
+            display: flex;
+            flex: 0 0 auto;
+            width: auto;
+            margin: 0;
+            padding: 0;
+            border: 0;
         }
 
         .status-chip {
-            width: 100%;
+            width: auto;
             min-height: 34px;
             border-color: #e1e4e8;
             background: transparent;
@@ -602,16 +603,16 @@
         }
 
         .topbar .button {
-            width: 100%;
+            width: auto;
             min-height: 34px;
         }
 
         .detail-header {
             position: sticky;
-            top: 0;
+            top: 62px;
             z-index: 800;
-            grid-column: 2;
-            grid-row: 1;
+            grid-column: 1;
+            grid-row: 2;
             display: flex;
             align-items: center;
             min-width: 0;
@@ -635,8 +636,8 @@
 
         .hero,
         .workspace {
-            grid-column: 2;
-            grid-row: 2;
+            grid-column: 1;
+            grid-row: 3;
             width: 100%;
             padding: 18px 24px 40px;
         }
@@ -670,7 +671,7 @@
         .protocol-view {
             display: grid;
             grid-template-columns: 250px minmax(360px, 1fr) minmax(320px, 0.9fr);
-            min-height: calc(100vh - 62px);
+            min-height: calc(100vh - 116px);
             padding: 0;
             border: 0;
             background: #fff;
@@ -945,40 +946,43 @@
 
         @media (max-width: 720px) {
             .page {
-                grid-template-columns: 76px minmax(0, 1fr);
-                grid-template-rows: 62px minmax(0, 1fr);
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-rows: 58px 50px minmax(0, 1fr);
             }
 
             .topbar {
-                width: 76px;
-                padding: 10px 8px;
+                gap: 8px;
+                width: 100%;
+                height: 58px;
+                padding: 7px 10px;
             }
 
             .brand {
-                display: flex;
-                justify-content: center;
-                padding: 7px;
+                display: none;
             }
 
-            .brand h1,
-            .side-nav-label,
             .toolbar #statusText,
             .topbar .button {
                 display: none;
             }
 
-            .side-nav-link {
-                justify-content: center;
-                padding: 8px;
+            .toolbar {
+                display: none;
             }
 
-            .side-nav-icon {
-                width: 28px;
-                height: 28px;
-                flex-basis: 28px;
-                border: 1px solid #e5e7eb;
-                border-radius: 4px;
-                background: #fff;
+            .side-nav {
+                justify-content: flex-start;
+                gap: 2px;
+            }
+
+            .side-nav-link {
+                justify-content: center;
+                min-height: 34px;
+                padding: 6px;
+            }
+
+            .side-nav-label {
+                font-size: 12px;
             }
 
             .status-chip {
@@ -988,6 +992,7 @@
             }
 
             .detail-header {
+                top: 58px;
                 padding: 0 12px;
             }
 
@@ -1913,8 +1918,6 @@
     };
 
     function defaultBrokerUrl() {
-        const configuredUrl = new URLSearchParams(window.location.search).get("broker_url");
-        if (configuredUrl) return configuredUrl;
         const host = window.location.hostname || "127.0.0.1";
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         return `${protocol}//${host}:18080/mqtt`;

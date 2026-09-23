@@ -17,18 +17,26 @@ bench --site erp.skychip.top set-config \
 Configure the browser-reachable SCD BifroMQ dashboard URL. This must point to
 the `bifromq-dashboard.html` served by SCD. When ERPNext uses HTTPS, this URL
 must also use HTTPS so the browser does not block the iframe as mixed content.
+The dashboard must stay on the SCD origin because it calls relative
+`/api/bifromq/*` endpoints.
 
 ```bash
 bench --site erp.skychip.top set-config \
   mqtt_bifromq_dashboard_url \
-  'https://scd.example.com/static/bifromq-dashboard.html'
+  'http://tchart.skychip.top:8710/static/bifromq-dashboard.html'
 ```
 
-The packaged console asset is served from:
+The MQTT client source is maintained by SCD at
+`http://tchart.skychip.top:8710/static/index.html`. Copy that file into
+`mqtt_integration/public/mqtt/index.html` before each MQTT integration release.
+The packaged copy is served from:
 
 ```text
 /assets/mqtt_integration/mqtt/index.html
 ```
+
+Both iframe URLs receive the package version as a `v` query parameter so a new
+immutable release does not reuse the previous HTML from browser caches.
 
 ## Local Validation
 
