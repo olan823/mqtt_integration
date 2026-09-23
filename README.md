@@ -14,6 +14,16 @@ bench --site erp.skychip.top set-config \
   mqtt_broker_websocket_url 'wss://mqtt.example.com/mqtt'
 ```
 
+Configure the browser-reachable SCD BifroMQ dashboard URL. This must point to
+the `bifromq-dashboard.html` served by SCD. When ERPNext uses HTTPS, this URL
+must also use HTTPS so the browser does not block the iframe as mixed content.
+
+```bash
+bench --site erp.skychip.top set-config \
+  mqtt_bifromq_dashboard_url \
+  'https://scd.example.com/static/bifromq-dashboard.html'
+```
+
 The packaged console asset is served from:
 
 ```text
@@ -37,3 +47,8 @@ bench --site erp.skychip.top clear-cache
 
 Assign `MQTT User` to users who need the console. `System Manager` also has
 access.
+
+The MQTT Workspace contains two entries:
+
+- `MQTT 客户端`: the browser MQTT publish/subscribe client.
+- `MQTT 控制台`: the SCD BifroMQ operations dashboard.

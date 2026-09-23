@@ -18,6 +18,16 @@ def _validate_broker_url(value):
     return value
 
 
+def _validate_dashboard_url(value):
+    if not value:
+        return ""
+
+    parsed = urlparse(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        frappe.throw(_("MQTT dashboard URL must use http:// or https://."))
+    return value
+
+
 @frappe.whitelist()
 def get_console_settings():
     if not ALLOWED_ROLES.intersection(frappe.get_roles()):
@@ -28,4 +38,16 @@ def get_console_settings():
         "broker_url": _validate_broker_url(
             frappe.conf.get("mqtt_broker_websocket_url", "")
         ),
+    }
+
+
+@frappe.whitelist()
+def get_dashboard_settings():
+    if not ALLOWED_ROLES.intersection(frappe.get_roles()):
+        frappe.throw(_("You are not permitted to open the MQTT dashboard."), frappe.PermissionError)
+
+    return {
+        "dashboard_url": _validate_dashboard_url(
+            frappe.conf.get("mqtt_bifromq_dashboard_url", "")
+        )
     }

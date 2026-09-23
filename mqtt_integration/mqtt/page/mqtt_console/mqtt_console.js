@@ -35,13 +35,13 @@ frappe.pages["mqtt-console"].on_page_load = function (wrapper) {
 	ensureMqttConsoleStyle();
 	frappe.ui.make_app_page({
 		parent: wrapper,
-		title: __("MQTT Console"),
+		title: __("MQTT Client"),
 		single_column: true,
 	});
 
 	const main = wrapper.querySelector(".layout-main-section");
 	main.classList.add("mqtt-console-page");
-	main.innerHTML = '<div class="mqtt-console-loading text-muted">' + __("Loading MQTT console...") + "</div>";
+	main.innerHTML = '<div class="mqtt-console-loading text-muted">' + __("Loading MQTT client...") + "</div>";
 
 	frappe.call({
 		method: "mqtt_integration.api.settings.get_console_settings",
@@ -55,12 +55,12 @@ frappe.pages["mqtt-console"].on_page_load = function (wrapper) {
 		main.innerHTML = "";
 		const frame = document.createElement("iframe");
 		frame.className = "mqtt-console-frame";
-		frame.title = __("MQTT Console");
+		frame.title = __("MQTT Client");
 		frame.src = consoleUrl.toString();
 		frame.allow = "clipboard-write";
 		main.appendChild(frame);
 	}).catch(() => {
-		main.innerHTML = '<div class="mqtt-console-error text-danger">' + __("Unable to load MQTT console settings.") + "</div>";
+		main.innerHTML = '<div class="mqtt-console-error text-danger">' + __("Unable to load MQTT client settings.") + "</div>";
 	});
 };
 

@@ -7,9 +7,23 @@ APP_NAME = "mqtt_integration"
 APP_HOME = "/app/mqtt"
 APP_LOGO_URL = "/assets/mqtt_integration/images/mqtt.svg"
 MODULE_NAME = "MQTT"
-PAGE_NAME = "mqtt-console"
+CLIENT_PAGE_NAME = "mqtt-console"
+DASHBOARD_PAGE_NAME = "mqtt-dashboard"
 ROLE_NAME = "MQTT User"
 WORKSPACE_NAME = "MQTT"
+
+WORKSPACE_SHORTCUTS = [
+    {
+        "id": "mqtt-client-shortcut",
+        "label": "MQTT 客户端",
+        "page": CLIENT_PAGE_NAME,
+    },
+    {
+        "id": "mqtt-dashboard-shortcut",
+        "label": "MQTT 控制台",
+        "page": DASHBOARD_PAGE_NAME,
+    },
+]
 
 
 def after_install():
@@ -62,14 +76,20 @@ def ensure_workspace():
             "content": json.dumps(
                 [
                     {
-                        "id": "mqtt-console-shortcut",
+                        "id": shortcut["id"],
                         "type": "shortcut",
-                        "data": {"shortcut_name": "MQTT 控制台", "col": 4},
+                        "data": {"shortcut_name": shortcut["label"], "col": 4},
                     }
+                    for shortcut in WORKSPACE_SHORTCUTS
                 ]
             ),
             "shortcuts": [
-                {"label": "MQTT 控制台", "type": "Page", "link_to": PAGE_NAME}
+                {
+                    "label": shortcut["label"],
+                    "type": "Page",
+                    "link_to": shortcut["page"],
+                }
+                for shortcut in WORKSPACE_SHORTCUTS
             ],
             "roles": [{"role": ROLE_NAME}, {"role": "System Manager"}],
         }
@@ -94,21 +114,39 @@ def ensure_custom_workspace_shortcut():
         return
 
     content = frappe.parse_json(customization.content)
-    if any(
-        block.get("type") == "shortcut"
-        and block.get("data", {}).get("shortcut_name") == "MQTT 控制台"
-        for block in content
-    ):
-        return
-
-    content.insert(
-        0,
-        {
-            "id": "mqtt-console-shortcut",
-            "type": "shortcut",
-            "data": {"shortcut_name": "MQTT 控制台", "col": 4},
-        },
+    legacy_block = next(
+        (
+            block
+            for block in content
+            if block.get("type") == "shortcut"
+            and block.get("id") == "mqtt-console-shortcut"
+        ),
+        None,
     )
+    if legacy_block:
+        legacy_block["id"] = WORKSPACE_SHORTCUTS[0]["id"]
+        legacy_block.setdefault("data", {})["shortcut_name"] = WORKSPACE_SHORTCUTS[0][
+            "label"
+        ]
+
+    existing_ids = {block.get("id") for block in content}
+    existing_labels = {
+        block.get("data", {}).get("shortcut_name")
+        for block in content
+        if block.get("type") == "shortcut"
+    }
+    for shortcut in reversed(WORKSPACE_SHORTCUTS):
+        if shortcut["id"] in existing_ids or shortcut["label"] in existing_labels:
+            continue
+        content.insert(
+            0,
+            {
+                "id": shortcut["id"],
+                "type": "shortcut",
+                "data": {"shortcut_name": shortcut["label"], "col": 4},
+            },
+        )
+
     customization.content = json.dumps(content)
     customization.save(ignore_permissions=True)
 
