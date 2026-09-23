@@ -23,8 +23,14 @@ The dashboard must stay on the SCD origin because it calls relative
 ```bash
 bench --site erp.skychip.top set-config \
   mqtt_bifromq_dashboard_url \
-  'http://tchart.skychip.top:8710/static/bifromq-dashboard.html'
+  'https://tchart.skychip.top/static/bifromq-dashboard.html'
 ```
+
+Do not configure the production HTTPS ERPNext site with the direct
+`http://tchart.skychip.top:8710/...` URL. Browsers block that iframe as mixed
+content. The HTTPS reverse proxy must forward both `/static/` and
+`/api/bifromq/` to SCD so the dashboard's relative API requests stay on the
+same origin.
 
 The MQTT client source is maintained by SCD at
 `http://tchart.skychip.top:8710/static/index.html`. Copy that file into

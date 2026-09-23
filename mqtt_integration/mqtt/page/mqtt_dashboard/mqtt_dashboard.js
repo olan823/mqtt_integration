@@ -31,6 +31,14 @@ function ensureMqttDashboardStyle() {
 	document.head.appendChild(style);
 }
 
+function validateMqttDashboardUrl(value) {
+	const dashboardUrl = new URL(value, window.location.origin);
+	if (window.location.protocol === "https:" && dashboardUrl.protocol !== "https:") {
+		throw new Error("MQTT dashboard URL must use HTTPS when ERPNext uses HTTPS");
+	}
+	return dashboardUrl.toString();
+}
+
 frappe.pages["mqtt-dashboard"].on_page_load = function (wrapper) {
 	ensureMqttDashboardStyle();
 	frappe.ui.make_app_page({
@@ -50,16 +58,18 @@ frappe.pages["mqtt-dashboard"].on_page_load = function (wrapper) {
 		if (!dashboardUrl) {
 			throw new Error("MQTT dashboard URL is not configured");
 		}
+		const frameUrl = validateMqttDashboardUrl(dashboardUrl);
 
 		main.innerHTML = "";
 		const frame = document.createElement("iframe");
 		frame.className = "mqtt-dashboard-frame";
 		frame.title = __("MQTT Console");
-		frame.src = dashboardUrl;
+		frame.src = frameUrl;
 		frame.allow = "clipboard-write";
 		main.appendChild(frame);
-	}).catch(() => {
-		main.innerHTML = '<div class="mqtt-dashboard-error text-danger">' + __("Unable to load MQTT console. Check mqtt_bifromq_dashboard_url in site configuration.") + "</div>";
+	}).catch((error) => {
+		const detail = frappe.utils.escape_html(error.message || String(error));
+		main.innerHTML = '<div class="mqtt-dashboard-error text-danger">' + __("Unable to load MQTT console. Check mqtt_bifromq_dashboard_url in site configuration.") + "<br>" + detail + "</div>";
 	});
 };
 

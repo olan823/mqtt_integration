@@ -114,20 +114,26 @@ def ensure_custom_workspace_shortcut():
         return
 
     content = frappe.parse_json(customization.content)
-    legacy_block = next(
-        (
-            block
-            for block in content
-            if block.get("type") == "shortcut"
-            and block.get("id") == "mqtt-console-shortcut"
-        ),
-        None,
-    )
-    if legacy_block:
-        legacy_block["id"] = WORKSPACE_SHORTCUTS[0]["id"]
-        legacy_block.setdefault("data", {})["shortcut_name"] = WORKSPACE_SHORTCUTS[0][
-            "label"
-        ]
+    legacy_ids = {"mqtt-console-shortcut"}
+    for shortcut in WORKSPACE_SHORTCUTS:
+        matching_block = next(
+            (
+                block
+                for block in content
+                if block.get("type") == "shortcut"
+                and (
+                    block.get("id") == shortcut["id"]
+                    or (
+                        shortcut["page"] == CLIENT_PAGE_NAME
+                        and block.get("id") in legacy_ids
+                    )
+                )
+            ),
+            None,
+        )
+        if matching_block:
+            matching_block["id"] = shortcut["id"]
+            matching_block.setdefault("data", {})["shortcut_name"] = shortcut["label"]
 
     existing_ids = {block.get("id") for block in content}
     existing_labels = {
