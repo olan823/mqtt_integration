@@ -1,0 +1,2724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BifroMQ WEB端</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f3f6fb;
+            --panel: #ffffff;
+            --panel-border: #d8e1ec;
+            --text: #16202b;
+            --muted: #637487;
+            --primary: #1367d1;
+            --primary-strong: #0d4ea0;
+            --success: #0c8a52;
+            --danger: #c03535;
+            --warn: #bf7b16;
+            --shadow: 0 14px 32px rgba(17, 31, 48, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .page {
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto auto 1fr;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 28px;
+            background: #0f1722;
+            color: #f7fbff;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .brand p {
+            margin: 0;
+            color: #adc0d7;
+            font-size: 13px;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 36px;
+            padding: 0 12px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            font-size: 13px;
+            color: #d9e8f5;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #9aa9ba;
+            flex: 0 0 auto;
+        }
+
+        .status-dot.connected {
+            background: #29c77a;
+            box-shadow: 0 0 0 3px rgba(41, 199, 122, 0.16);
+        }
+
+        .status-dot.connecting {
+            background: #f4a524;
+            box-shadow: 0 0 0 3px rgba(244, 165, 36, 0.16);
+        }
+
+        .button,
+        .text-input,
+        .text-area,
+        .select-input {
+            font: inherit;
+        }
+
+        .button {
+            min-height: 40px;
+            padding: 0 16px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            background: var(--primary);
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .button:hover {
+            background: var(--primary-strong);
+        }
+
+        .button.secondary {
+            background: #ffffff;
+            color: var(--text);
+            border-color: var(--panel-border);
+        }
+
+        .button.secondary:hover {
+            background: #eef4fb;
+        }
+
+        .button.danger {
+            background: #fff4f4;
+            color: var(--danger);
+            border-color: #efc3c3;
+        }
+
+        .button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr);
+            gap: 16px;
+            padding: 20px 28px 0;
+        }
+
+        .hero-section,
+        .workspace-section {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .hero-section {
+            padding: 20px;
+        }
+
+        .hero-heading {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .hero-heading h2,
+        .workspace-section h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .hero-heading p,
+        .workspace-section p,
+        .field-help,
+        .metric-label {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .endpoint-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 160px;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .metric {
+            min-height: 92px;
+            padding: 14px 16px;
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            background: #fbfdff;
+        }
+
+        .metric-value {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(320px, 380px) minmax(0, 1fr) minmax(0, 1fr);
+            gap: 16px;
+            padding: 16px 28px 28px;
+            align-items: start;
+        }
+
+        .workspace-section {
+            padding: 18px;
+        }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .field-group {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .inline-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 110px;
+            gap: 12px;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        label {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .text-input,
+        .text-area,
+        .select-input {
+            width: 100%;
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            background: #fff;
+            color: var(--text);
+            padding: 10px 12px;
+            outline: none;
+        }
+
+        .text-input:focus,
+        .text-area:focus,
+        .select-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(19, 103, 209, 0.12);
+        }
+
+        .text-area {
+            min-height: 118px;
+            resize: vertical;
+        }
+
+        .message-list,
+        .log-list {
+            display: grid;
+            gap: 10px;
+            max-height: 520px;
+            overflow: auto;
+        }
+
+        .message-item,
+        .log-item {
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            background: #fbfdff;
+            padding: 12px;
+        }
+
+        .message-topic,
+        .message-meta,
+        .log-meta {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .message-payload,
+        .log-message,
+        code.inline-code {
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .inline-code {
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 12px;
+            background: #eef4fb;
+            border-radius: 6px;
+            padding: 2px 6px;
+        }
+
+        .empty-state {
+            min-height: 120px;
+            display: grid;
+            place-items: center;
+            border: 1px dashed var(--panel-border);
+            border-radius: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            text-align: center;
+            padding: 16px;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 34, 0.46);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 1200;
+        }
+
+        .modal-backdrop.open,
+        .modal-backdrop:target {
+            display: flex;
+        }
+
+        .modal {
+            width: min(720px, 100%);
+            max-height: calc(100vh - 32px);
+            background: #fff;
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            box-shadow: 0 24px 54px rgba(8, 18, 30, 0.2);
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            overflow: hidden;
+        }
+
+        .modal-header,
+        .modal-footer {
+            padding: 16px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            background: #f8fbff;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .modal-footer {
+            border-bottom: none;
+            border-top: 1px solid var(--panel-border);
+            justify-content: flex-end;
+        }
+
+        .modal-body {
+            padding: 18px;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            display: grid;
+            gap: 4px;
+        }
+
+        .modal-title h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .hint-list {
+            margin: 0;
+            padding-left: 18px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .field-help code {
+            background: #eef4fb;
+            border-radius: 6px;
+            padding: 2px 6px;
+        }
+
+        .link-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .link-row a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        @media (max-width: 1180px) {
+            .hero,
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 720px) {
+            .topbar,
+            .hero,
+            .workspace {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .endpoint-grid,
+            .inline-grid,
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar,
+            .section-head,
+            .hero-heading,
+            .modal-header,
+            .modal-footer {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .button {
+                width: 100%;
+            }
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        /* Dashboard-style split workspace */
+        body {
+            background: #fff;
+        }
+
+        .page {
+            display: grid;
+            grid-template-columns: 240px minmax(0, 1fr);
+            grid-template-rows: 62px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            grid-column: 1;
+            grid-row: 1 / -1;
+            align-self: start;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 14px;
+            width: 240px;
+            height: 100vh;
+            padding: 10px 12px 16px;
+            border-right: 1px solid #e5e7eb;
+            background: #f8f9fa;
+            color: var(--text);
+            overflow-y: auto;
+        }
+
+        .brand {
+            display: grid;
+            grid-template-columns: 34px minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            background: #f1f2f4;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            place-items: center;
+            border-radius: 7px;
+            background: #1367d1;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .brand h1 {
+            overflow: hidden;
+            color: #111827;
+            font-size: 15px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .brand p {
+            display: none;
+        }
+
+        .side-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .side-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 36px;
+            padding: 7px 9px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: #374151;
+            text-decoration: none;
+        }
+
+        .side-nav-link:hover {
+            border-color: #e5e7eb;
+            background: #fff;
+            color: #111827;
+        }
+
+        .side-nav-link.active {
+            border-color: #e1e4e8;
+            background: #fff;
+            color: #111827;
+            box-shadow: 0 1px 3px rgba(17, 24, 39, 0.08);
+        }
+
+        .side-nav-icon {
+            display: grid;
+            width: 18px;
+            height: 18px;
+            flex: 0 0 18px;
+            place-items: center;
+            color: #5f6875;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .side-nav-label {
+            font-size: 14px;
+        }
+
+        .toolbar {
+            display: grid;
+            gap: 8px;
+            width: 100%;
+            margin-top: auto;
+            padding-top: 14px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .status-chip {
+            width: 100%;
+            min-height: 34px;
+            border-color: #e1e4e8;
+            background: transparent;
+            color: #4b5563;
+        }
+
+        .topbar .button {
+            width: 100%;
+            min-height: 34px;
+        }
+
+        .detail-header {
+            position: sticky;
+            top: 0;
+            z-index: 800;
+            grid-column: 2;
+            grid-row: 1;
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            padding: 0 24px;
+            border-bottom: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.96);
+        }
+
+        .detail-header h2 {
+            margin: 0;
+            color: #111827;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .detail-header h2::before {
+            content: "MQTT / ";
+            color: #8b949e;
+            font-weight: 400;
+        }
+
+        .hero,
+        .workspace {
+            grid-column: 2;
+            grid-row: 2;
+            width: 100%;
+            padding: 18px 24px 40px;
+        }
+
+        .hero {
+            grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+        }
+
+        .workspace {
+            display: block;
+            pointer-events: none;
+        }
+
+        .hero-section,
+        .workspace-section {
+            border-color: #e1e4e8;
+            box-shadow: none;
+        }
+
+        .workspace-section {
+            width: 100%;
+            max-width: none;
+            pointer-events: auto;
+        }
+
+        .message-list,
+        .log-list {
+            max-height: 360px;
+        }
+
+        .protocol-view {
+            display: grid;
+            grid-template-columns: 250px minmax(360px, 1fr) minmax(320px, 0.9fr);
+            min-height: calc(100vh - 62px);
+            padding: 0;
+            border: 0;
+            background: #fff;
+            overflow: hidden;
+            pointer-events: auto;
+        }
+
+        .protocol-catalog,
+        .protocol-detail,
+        .protocol-result {
+            min-width: 0;
+            padding: 22px 20px;
+            overflow-y: auto;
+        }
+
+        .protocol-catalog,
+        .protocol-detail {
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .protocol-catalog {
+            background: #fafbfc;
+        }
+
+        .protocol-search {
+            position: relative;
+            margin-bottom: 18px;
+        }
+
+        .protocol-search .text-input {
+            padding-right: 36px;
+            background: #fff;
+        }
+
+        .protocol-search-mark {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            color: #65758b;
+            font-size: 14px;
+            transform: translateY(-50%);
+        }
+
+        .protocol-group-title {
+            margin: 0 0 8px;
+            color: #1f2937;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .protocol-topic-link {
+            display: grid;
+            gap: 5px;
+            width: 100%;
+            margin-bottom: 6px;
+            padding: 11px 12px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            background: transparent;
+            color: #344054;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .protocol-topic-link:hover {
+            border-color: #dbe3ec;
+            background: #fff;
+        }
+
+        .protocol-topic-link.active {
+            border-color: #c9dcf5;
+            background: #eaf3ff;
+            color: #0d5db8;
+        }
+
+        .protocol-topic-link strong {
+            font-size: 13px;
+        }
+
+        .protocol-topic-link span {
+            overflow: hidden;
+            color: #58718e;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 11px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .protocol-heading {
+            margin-bottom: 20px;
+        }
+
+        .protocol-heading h3,
+        .protocol-result h3 {
+            margin: 0;
+            color: #111827;
+            font-size: 17px;
+        }
+
+        .protocol-heading p,
+        .protocol-result-heading p {
+            margin: 7px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .protocol-badges {
+            display: flex;
+            gap: 7px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .protocol-badge {
+            padding: 3px 7px;
+            border-radius: 4px;
+            background: #eaf3ff;
+            color: #0d5db8;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .protocol-section {
+            margin-top: 22px;
+        }
+
+        .protocol-section-head,
+        .protocol-result-heading,
+        .code-block-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .protocol-section-head {
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .protocol-section-head h4 {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .protocol-topic-value {
+            padding: 12px;
+            border: 1px solid #dbe3ec;
+            border-radius: 6px;
+            background: #f8fafc;
+            color: #183b63;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .protocol-param-list {
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .protocol-param {
+            display: grid;
+            grid-template-columns: minmax(110px, 0.8fr) minmax(90px, 0.55fr) minmax(180px, 1.7fr);
+            gap: 12px;
+            padding: 11px 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .protocol-param-name {
+            color: #163d68;
+            font-family: Consolas, "Courier New", monospace;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+
+        .protocol-required {
+            color: #c03535;
+        }
+
+        .protocol-param-type,
+        .protocol-param-description {
+            color: #637487;
+        }
+
+        .protocol-result {
+            background-color: #f8fafc;
+            background-image:
+                linear-gradient(#e8edf3 1px, transparent 1px),
+                linear-gradient(90deg, #e8edf3 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .protocol-result-heading {
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+
+        .code-block {
+            overflow: hidden;
+            margin-top: 14px;
+            border: 1px solid #d5dde7;
+            border-radius: 6px;
+            background: #fff;
+        }
+
+        .code-block-head {
+            min-height: 40px;
+            padding: 0 12px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #344054;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .copy-button {
+            padding: 4px 7px;
+            border: 0;
+            background: transparent;
+            color: #0d63c7;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .protocol-code {
+            max-height: 360px;
+            margin: 0;
+            padding: 14px;
+            overflow: auto;
+            color: #17324f;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 12px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .protocol-note {
+            margin-top: 14px;
+            padding: 10px 12px;
+            border-left: 3px solid #2f80d7;
+            background: rgba(255, 255, 255, 0.92);
+            color: #526477;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .protocol-note.warning {
+            border-left-color: #bf7b16;
+            background: #fff9ed;
+            color: #76500f;
+        }
+
+        @media (max-width: 980px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .protocol-view {
+                grid-template-columns: 220px minmax(0, 1fr);
+            }
+
+            .protocol-result {
+                grid-column: 1 / -1;
+                border-top: 1px solid #e5e7eb;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .page {
+                grid-template-columns: 76px minmax(0, 1fr);
+                grid-template-rows: 62px minmax(0, 1fr);
+            }
+
+            .topbar {
+                width: 76px;
+                padding: 10px 8px;
+            }
+
+            .brand {
+                display: flex;
+                justify-content: center;
+                padding: 7px;
+            }
+
+            .brand h1,
+            .side-nav-label,
+            .toolbar #statusText,
+            .topbar .button {
+                display: none;
+            }
+
+            .side-nav-link {
+                justify-content: center;
+                padding: 8px;
+            }
+
+            .side-nav-icon {
+                width: 28px;
+                height: 28px;
+                flex-basis: 28px;
+                border: 1px solid #e5e7eb;
+                border-radius: 4px;
+                background: #fff;
+            }
+
+            .status-chip {
+                justify-content: center;
+                padding: 0;
+                border: 0;
+            }
+
+            .detail-header {
+                padding: 0 12px;
+            }
+
+            .hero,
+            .workspace {
+                padding: 12px 12px 32px;
+            }
+
+            .workspace:has(.protocol-view:not([hidden])) {
+                padding: 0;
+            }
+
+            .protocol-view {
+                grid-template-columns: 1fr;
+            }
+
+            .protocol-catalog,
+            .protocol-detail {
+                border-right: 0;
+                border-bottom: 1px solid #e5e7eb;
+            }
+
+            .protocol-result {
+                grid-column: auto;
+            }
+
+            .protocol-param {
+                grid-template-columns: 1fr;
+                gap: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-mark">MQ</span>
+            <h1>MQTT客户端</h1>
+            <p>浏览器直接登录 bifromq，并完成订阅、发布和消息调试。</p>
+        </div>
+        <nav class="side-nav" aria-label="MQTT 功能导航">
+            <a class="side-nav-link" href="?view=connection" data-view-link="connection">
+                <span class="side-nav-icon">CN</span>
+                <span class="side-nav-label">连接控制</span>
+            </a>
+            <a class="side-nav-link" href="?view=subscribe" data-view-link="subscribe">
+                <span class="side-nav-icon">SB</span>
+                <span class="side-nav-label">订阅</span>
+            </a>
+            <a class="side-nav-link" href="?view=publish" data-view-link="publish">
+                <span class="side-nav-icon">PB</span>
+                <span class="side-nav-label">发布</span>
+            </a>
+            <a class="side-nav-link" href="?view=messages" data-view-link="messages">
+                <span class="side-nav-icon">LG</span>
+                <span class="side-nav-label">消息与日志</span>
+            </a>
+            <a class="side-nav-link" href="?view=protocol" data-view-link="protocol">
+                <span class="side-nav-icon">MP</span>
+                <span class="side-nav-label">MQTT 消息协议</span>
+            </a>
+        </nav>
+        <div class="toolbar">
+            <div class="status-chip">
+                <span id="statusDot" class="status-dot"></span>
+                <span id="statusText">未连接</span>
+            </div>
+        </div>
+    </header>
+
+    <header class="detail-header">
+        <h2 id="detailTitle">连接控制</h2>
+    </header>
+
+    <section class="hero view-section" data-view="connection">
+        <div class="hero-section">
+            <div class="hero-heading">
+                <div>
+                    <h2>连接控制</h2>
+                    <p>浏览器通过 MQTT over WebSocket 连接 bifromq，默认端点为当前主机的 <span class="inline-code">18080/mqtt</span>。</p>
+                </div>
+                <div class="link-row">
+
+                </div>
+            </div>
+            <div class="endpoint-grid">
+                <div class="field-group">
+                    <label for="brokerUrlInput">Broker WebSocket 地址</label>
+                    <input id="brokerUrlInput" class="text-input" type="text" placeholder="ws://127.0.0.1:18080/mqtt">
+                    <p class="field-help">APP客户端请用 mqtt://tchart.skychip.top:1883</code></p>
+                </div>
+            </div>
+            <div class="action-row">
+                <button id="quickConnectBtn" class="button secondary">用当前凭据重连</button>
+                <button id="openLoginModalBtn" class="button" type="button" onclick="document.getElementById('loginModal').classList.add('open'); document.getElementById('loginModal').setAttribute('aria-hidden', 'false');">登录 MQTT</button>
+                <button id="disconnectBtn" class="button secondary" disabled>断开连接</button>
+            </div>
+        </div>
+
+        <div class="hero-section">
+            <div class="section-head">
+                <div>
+                    <h2>会话概览</h2>
+                    <p>显示当前登录后的会话信息，以及页面最近一次生成或使用凭据的时间。</p>
+                </div>
+            </div>
+            <div class="metrics">
+                <div class="metric">
+                    <p class="metric-label">Username / Peer ID</p>
+                    <div id="metricPeerId" class="metric-value">-</div>
+                </div>
+                <div class="metric">
+                    <p class="metric-label">Client ID</p>
+                    <div id="metricClientId" class="metric-value">-</div>
+                </div>
+                <div class="metric">
+                    <p id="metricAuthAtLabel" class="metric-label">最近凭据时间</p>
+                    <div id="metricSignedAt" class="metric-value">-</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="workspace">
+        <section class="workspace-section view-section" data-view="subscribe">
+            <div class="section-head">
+                <div>
+                    <h2>订阅</h2>
+                    <p>登录成功后可动态订阅 Topic。</p>
+                </div>
+            </div>
+            <div class="field-group">
+                <label for="subscribeTopicInput">Topic Filter</label>
+                <input id="subscribeTopicInput" class="text-input" type="text" placeholder="登录后自动填入允许订阅的 Topic，也可手工修改测试 ACL">
+            </div>
+            <div class="inline-grid">
+                <div class="field-group">
+                    <label for="subscribeQosSelect">QoS</label>
+                    <select id="subscribeQosSelect" class="select-input">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>&nbsp;</label>
+                    <button id="subscribeBtn" class="button secondary" disabled>订阅</button>
+                </div>
+            </div>
+            <div class="action-row">
+                <button id="unsubscribeBtn" class="button secondary" disabled>取消订阅</button>
+                <button id="subscribeAllowedBtn" class="button secondary" disabled>订阅允许的 Topic</button>
+            </div>
+        </section>
+
+        <section class="workspace-section view-section" data-view="publish">
+            <div class="section-head">
+                <div>
+                    <h2>发布</h2>
+                    <p>用当前 MQTT 会话向指定 Topic 发布消息。</p>
+                </div>
+            </div>
+            <div class="field-group">
+                <label for="publishTopicInput">Topic</label>
+                <input id="publishTopicInput" class="text-input" type="text" placeholder="登录后自动填入允许发布的 Topic，也可手工修改测试 ACL">
+            </div>
+            <div class="inline-grid">
+                <div class="field-group">
+                    <label for="publishQosSelect">QoS</label>
+                    <select id="publishQosSelect" class="select-input">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label for="publishRetainSelect">Retain</label>
+                    <select id="publishRetainSelect" class="select-input" disabled>
+                        <option value="false">false</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field-group">
+                <label for="publishPayloadInput">Payload</label>
+                <textarea id="publishPayloadInput" class="text-area">hello from web demo</textarea>
+            </div>
+            <div class="action-row">
+                <button id="publishBtn" class="button" disabled>发布消息</button>
+                <button id="publishJsonBtn" class="button secondary" disabled>发布 JSON 示例</button>
+            </div>
+        </section>
+
+        <section class="workspace-section view-section" data-view="messages">
+            <div class="section-head">
+                <div>
+                    <h2>消息与日志</h2>
+                    <p>左侧显示接收消息，右侧显示连接过程和调试日志。</p>
+                </div>
+            </div>
+            <div class="field-group">
+                <div id="messageList" class="message-list">
+                    <div class="empty-state">暂无消息。先登录，再订阅 Topic。</div>
+                </div>
+            </div>
+            <div class="action-row">
+                <button id="clearMessagesBtn" class="button secondary">清空消息</button>
+                <button id="clearLogsBtn" class="button secondary">清空日志</button>
+            </div>
+            <div class="field-group" style="margin-top: 14px;">
+                <div id="logList" class="log-list">
+                    <div class="empty-state">暂无日志。</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="protocol-view view-section" data-view="protocol">
+            <aside class="protocol-catalog" aria-label="MQTT 主题目录">
+                <div class="protocol-search">
+                    <input id="protocolSearchInput" class="text-input" type="search" placeholder="搜索主题或服务名称" aria-label="搜索主题">
+                    <span class="protocol-search-mark" aria-hidden="true">⌕</span>
+                </div>
+                <h3 class="protocol-group-title">物模型服务</h3>
+                <button class="protocol-topic-link active" type="button" data-protocol-key="dev_config">
+                    <strong>设备配置下发</strong>
+                    <span>thing/service/dev_config/invoke</span>
+                </button>
+                <button class="protocol-topic-link" type="button" data-protocol-key="dev_manage">
+                    <strong>设备管理</strong>
+                    <span>thing/service/dev_manage/invoke</span>
+                </button>
+                <button class="protocol-topic-link" type="button" data-protocol-key="server_remote">
+                    <strong>远程开锁</strong>
+                    <span>thing/service/server_remote/invoke</span>
+                </button>
+                <button class="protocol-topic-link" type="button" data-protocol-key="time_sync">
+                    <strong>时间同步响应</strong>
+                    <span>thing/service/time_sync/invoke</span>
+                </button>
+                <button class="protocol-topic-link" type="button" data-protocol-key="user_manage_password">
+                    <strong>用户管理 · 密码用户</strong>
+                    <span>thing/service/user_manage/invoke</span>
+                </button>
+                <button class="protocol-topic-link" type="button" data-protocol-key="user_manage_card">
+                    <strong>用户管理 · 卡片用户</strong>
+                    <span>thing/service/user_manage/invoke</span>
+                </button>
+                <h3 class="protocol-group-title" style="margin-top: 20px;">事件上报</h3>
+                <button class="protocol-topic-link" type="button" data-protocol-key="unlock_record">
+                    <strong>开锁记录</strong>
+                    <span>thing/event/post</span>
+                </button>
+                <button class="protocol-topic-link" type="button" data-protocol-key="dev_alarm">
+                    <strong>告警事件</strong>
+                    <span>thing/event/post</span>
+                </button>
+                <button class="protocol-topic-link" type="button" data-protocol-key="dev_info">
+                    <strong>设备信息上报</strong>
+                    <span>thing/event/post</span>
+                </button>
+            </aside>
+
+            <article class="protocol-detail">
+                <div class="protocol-heading">
+                    <h3 id="protocolName">设备配置下发</h3>
+                    <p id="protocolDescription">调用物模型服务 <code class="inline-code">dev_config</code>，向指定设备下发配置参数。</p>
+                    <div id="protocolBadges" class="protocol-badges">
+                        <span class="protocol-badge">PUBLISH</span>
+                        <span class="protocol-badge">SUBSCRIBE _reply</span>
+                        <span class="protocol-badge">QoS 1</span>
+                        <span class="protocol-badge">Retain false</span>
+                        <span id="protocolStatusBadge" class="protocol-badge">网关已实现</span>
+                    </div>
+                </div>
+
+                <section class="protocol-section">
+                    <div class="protocol-section-head">
+                        <h4 id="protocolTopicLabel">下行 Topic · APP 发布</h4>
+                        <button class="copy-button" type="button" data-copy-target="protocolTopic">复制</button>
+                    </div>
+                    <div id="protocolTopic" class="protocol-topic-value">$sys/VOKk9Z6sWQ/CMIoTIntegrationDevice2/thing/service/dev_config/invoke</div>
+                    <div id="protocolTopicWarning" class="protocol-note warning" hidden></div>
+                </section>
+
+                <section id="protocolReplySection" class="protocol-section">
+                    <div class="protocol-section-head">
+                        <h4>上行回复 Topic · APP 订阅</h4>
+                        <button class="copy-button" type="button" data-copy-target="protocolReplyTopic">复制</button>
+                    </div>
+                    <div id="protocolReplyTopic" class="protocol-topic-value">$sys/VOKk9Z6sWQ/CMIoTIntegrationDevice2/thing/service/dev_config/invoke_reply</div>
+                </section>
+
+                <section class="protocol-section">
+                    <div class="protocol-section-head">
+                        <h4 id="protocolParamsLabel">Payload 输入参数</h4>
+                    </div>
+                    <div id="protocolParamList" class="protocol-param-list"></div>
+                </section>
+            </article>
+
+            <aside class="protocol-result">
+                <div class="protocol-result-heading">
+                    <div>
+                        <h3 id="protocolResultTitle">请求与设备回复</h3>
+                        <p id="protocolExampleDescription">APP 先订阅回复 Topic，再发布服务调用。</p>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-block-head">
+                        <span id="protocolPayloadLabel">下行 JSON · APP 发布</span>
+                        <button class="copy-button" type="button" data-copy-target="protocolPayload">复制</button>
+                    </div>
+                    <pre id="protocolPayload" class="protocol-code">{
+  "id": "msg_010",
+  "version": "1.0",
+  "params": {
+    "configs": [
+      {
+        "key": "volume",
+        "value": "2"
+      }
+    ]
+  }
+}</pre>
+                </div>
+
+                <div id="protocolResponseBlock" class="code-block">
+                    <div class="code-block-head">
+                                                <span id="protocolResponseLabel">上行 JSON · 设备回复</span>
+                        <button class="copy-button" type="button" data-copy-target="protocolResponse">复制</button>
+                    </div>
+                    <pre id="protocolResponse" class="protocol-code">{
+    "id": "msg_010",
+    "code": 200,
+    "msg": "",
+    "data": {
+        "configs": [
+            {
+                "key": "volume",
+                "value": "2"
+            }
+        ]
+    }
+}</pre>
+                </div>
+
+                <div id="protocolResultNote" class="protocol-note">
+                                        APP 应在发布前订阅 invoke_reply Topic，并使用相同 id 关联请求和设备回复。code 为 200 表示设备操作成功。
+                </div>
+            </aside>
+        </section>
+    </main>
+</div>
+
+<div id="loginModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
+        <div class="modal-header">
+            <div class="modal-title">
+                <h3 id="loginModalTitle">登录 MQTT</h3>
+                <p class="field-help">支持两种登录方式：<code>peerId + privateKey</code>，或直接输入可用的 <code>username + token</code>。</p>
+            </div>
+            <button id="closeLoginModalBtn" class="button secondary" type="button" onclick="document.getElementById('loginModal').classList.remove('open'); document.getElementById('loginModal').setAttribute('aria-hidden', 'true');">关闭</button>
+        </div>
+        <div class="modal-body">
+            <div class="field-group">
+                <label for="authModeSelect">认证方式</label>
+                <select id="authModeSelect" class="select-input">
+                    <option value="peerKey">设备端(锁)</option>
+                    <option value="raw">APP用户端</option>
+                </select>
+            </div>
+            <div class="field-group">
+                <label id="principalLabel" for="peerIdInput">Peer ID</label>
+                <input id="peerIdInput" class="text-input" type="text" placeholder="例如：4RziVpYaXqcKBetk8zfSKMTUtwNz3E2s7dfBt4SvYo2v">
+            </div>
+            <div class="field-group">
+                <label for="clientIdInput">Client ID</label>
+                <input id="clientIdInput" class="text-input" type="text" placeholder="设备端必填；APP 端必须与 JWT client_id 一致">
+            </div>
+            <div class="inline-grid">
+                <div class="field-group">
+                    <label for="tenantIdInput">Tenant ID</label>
+                    <input id="tenantIdInput" class="text-input" type="text" value="starchart">
+                </div>
+                <div class="field-group">
+                    <label for="sessionIdInput">Session ID</label>
+                    <input id="sessionIdInput" class="text-input" type="text" placeholder="APP JWT 只有一个 scope 时可留空">
+                </div>
+            </div>
+            <div class="field-group">
+                <label id="credentialLabel" for="privateKeyInput">Private Key</label>
+                <textarea id="privateKeyInput" class="text-area" style="min-height: 180px;" placeholder="支持 base64 DER、hex DER、PEM，或直接粘贴包含 id/private_key 的完整 peer JSON"></textarea>
+                <p id="authModeHelp" class="field-help">输入已注册 peer 的 <code>peerId</code> 和对应私钥。页面会自动生成 <code>timestamp:signature</code> 密码。</p>
+                <p id="sessionScopeHelp" class="field-help">设备端的会话 scope 必须先由可信后端写入 mqtt_authd，页面不会调用内部授权接口。</p>
+                <ul id="credentialHints" class="hint-list">
+                    <li>如果粘贴整个 peer JSON，会自动提取其中的 <code>id</code> 和 <code>private_key</code>。</li>
+                    <li>浏览器端只会在本页内存中使用私钥，不写入本地存储。</li>
+                    <li>当前 broker 默认使用 MQTT v3.1.1 over WebSocket。</li>
+                </ul>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="fillExampleBtn" class="button secondary">填充示例</button>
+            <button id="loginMqttBtn" class="button">登录 MQTT</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(() => {
+    const viewTitles = {
+        connection: "连接控制",
+        subscribe: "订阅",
+        publish: "发布",
+        messages: "消息与日志",
+        protocol: "MQTT 消息协议"
+    };
+
+    function showView(requestedView, updateUrl = false) {
+        const activeView = viewTitles[requestedView] ? requestedView : "connection";
+        document.querySelectorAll(".view-section").forEach((section) => {
+            section.hidden = section.dataset.view !== activeView;
+        });
+        document.querySelectorAll("[data-view-link]").forEach((link) => {
+            const isActive = link.dataset.viewLink === activeView;
+            link.classList.toggle("active", isActive);
+            if (isActive) link.setAttribute("aria-current", "page");
+            else link.removeAttribute("aria-current");
+        });
+        document.getElementById("detailTitle").textContent = viewTitles[activeView];
+        document.title = `${viewTitles[activeView]} - BifroMQ WEB端`;
+        if (updateUrl) {
+            const url = new URL(window.location.href);
+            url.searchParams.set("view", activeView);
+            window.history.pushState({ view: activeView }, "", url);
+        }
+    }
+
+    document.querySelectorAll("[data-view-link]").forEach((link) => {
+        link.addEventListener("click", (event) => {
+            event.preventDefault();
+            showView(link.dataset.viewLink, true);
+        });
+    });
+    window.addEventListener("popstate", () => {
+        showView(new URLSearchParams(window.location.search).get("view"));
+    });
+    showView(new URLSearchParams(window.location.search).get("view"));
+
+    const loginModal = document.getElementById("loginModal");
+    const openLoginModalBtn = document.getElementById("openLoginModalBtn");
+    const closeLoginModalBtn = document.getElementById("closeLoginModalBtn");
+
+    function openLoginModal() {
+        loginModal.classList.add("open");
+        loginModal.setAttribute("aria-hidden", "false");
+        setTimeout(() => document.getElementById("peerIdInput").focus(), 0);
+    }
+
+    function closeLoginModal(event) {
+        if (event) event.preventDefault();
+        loginModal.classList.remove("open");
+        loginModal.setAttribute("aria-hidden", "true");
+        if (window.location.hash === "#loginModal") {
+            window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+        }
+    }
+
+    openLoginModalBtn.addEventListener("click", openLoginModal);
+    closeLoginModalBtn.addEventListener("click", closeLoginModal);
+    loginModal.addEventListener("click", (event) => {
+        if (event.target === loginModal) closeLoginModal();
+    });
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeLoginModal();
+    });
+
+    const commonProtocolParams = [
+        ["id", "string", "消息唯一标识，建议在目标设备范围内保持唯一。", true],
+        ["version", "string", "协议版本，当前固定为 1.0。", true]
+    ];
+    const protocolDefinitions = {
+        dev_config: {
+            name: "设备配置下发",
+            service: "dev_config",
+            description: "向指定设备批量下发防撬、音量或常开配置。",
+            status: "网关部分实现 · 当前仅支持 volume",
+            gatewayImplemented: true,
+            topic: "$sys/VOKk9Z6sWQ/CMIoTIntegrationDevice2/thing/service/dev_config/invoke",
+            payload: { id: "msg_010", version: "1.0", params: { configs: [{ key: "volume", value: "2" }] } },
+            replyData: { configs: [{ key: "volume", value: "2" }] },
+            params: [
+                ...commonProtocolParams,
+                ["params.configs", "array(struct)", "设置参数列表，物模型最大长度为 50。"],
+                ["configs[].key", "string", "参数名：anti_pry（防撬）、volume（音量）或 normally_open（常开）。"],
+                ["configs[].value", "string(enum)", "参数值。anti_pry：1 禁用、2 启用；volume：1 高、2 中、3 低、4 静音；normally_open：1 禁用、2 单次长效、3 单次限时、4 周期。"]
+            ]
+        },
+        dev_manage: {
+            name: "设备管理",
+            service: "dev_manage",
+            description: "下发恢复出厂、解绑或初始化操作。",
+            status: "协议示例 · 网关待接入",
+            topic: "$sys/VOKk9Z6sWQ/CMIoTIntegrationDevice2/thing/service/dev_manage/invoke",
+            payload: {
+                id: "msg_015", version: "1.0",
+                params: {
+                    manage_type: 3,
+                    time: 1787206135,
+                    aes_iv: "0123456789abcdef",
+                    aes_key: "abcdef0123456789",
+                    admin_pwd: "628419",
+                    is_need_init: true,
+                    is_need_unbind: false,
+                    is_request_reset: false
+                }
+            },
+            replyData: {
+                manage_type: 3,
+                time: 1787206135,
+                is_init_success: true,
+                is_reset_success: false,
+                is_unbind_success: false
+            },
+            params: [
+                ...commonProtocolParams,
+                ["params.manage_type", "integer(enum)", "操作类型：1 恢复出厂设置、2 解绑、3 初始化。", true],
+                ["params.time", "integer(int64)", "操作发起时间，秒级时间戳，范围 1..9147483647。", true],
+                ["params.aes_iv", "string", "AES IV，物模型最大长度为 256。"],
+                ["params.aes_key", "string", "AES 密钥，物模型最大长度为 256。"],
+                ["params.admin_pwd", "string", "管理员密码，物模型标记为必填，最大长度为 256。", true],
+                ["params.is_need_init", "boolean", "设备端是否需要执行初始化。"],
+                ["params.is_need_unbind", "boolean", "是否需要进行设备解绑。"],
+                ["params.is_request_reset", "boolean", "设备是否需要恢复出厂设置。"]
+            ]
+        },
+        server_remote: {
+            name: "远程开锁",
+            service: "server_remote",
+            description: "向设备发起远程开锁，设备通过 invoke_reply 返回操作结果。",
+            status: "协议示例 · 网关待接入",
+            topic: "$sys/VOKk9Z6sWQ/CMIoTIntegrationDevice2/thing/service/server_remote/invoke",
+            payload: {
+                id: "msg_001", version: "1.0",
+                params: {}
+            },
+            replyData: { code: 200 },
+            params: [
+                ...commonProtocolParams,
+                ["params", "object", "当前设备协议约定为空对象。远程开锁结果由 invoke_reply Topic 返回。"]
+            ]
+        },
+        time_sync: {
+            name: "时间同步响应",
+            service: "time_sync",
+            description: "向设备返回平台时间及服务器与设备的时间差。",
+            status: "协议示例 · 网关待接入",
+            topic: "$sys/VOKk9Z6sWQ/CMIoTIntegrationDevice2/thing/service/time_sync/invoke",
+            payload: { id: "msg_015", version: "1.0", params: { time_offset: 5, server_time: 1787206135 } },
+            replyData: { code: 200 },
+            params: [
+                ...commonProtocolParams,
+                ["params.time_offset", "integer(int32)", "服务器与设备的时间差，范围 -2147483648..2147483647。"],
+                ["params.server_time", "integer(int64)", "平台秒级时间戳，范围 1..9147483647。"]
+            ]
+        },
+        user_manage_password: {
+            name: "用户管理 · 密码用户",
+            service: "user_manage",
+            description: "新增、修改或删除设备密码用户。",
+            status: "协议示例 · 网关待接入",
+            topic: "$sys/VOKk9Z6sWQ/CMIoTIntegrationDevice2/thing/service/user_manage/invoke",
+            payload: {
+                id: "debug_pwd_001", version: "1.0",
+                params: {
+                    time: 1787209289, operation_type: 3, card_user: [], fg_user: [],
+                    pwd_user: [{ user_id: 20, pwd: "628419", usage_times: 1, pwd_type: 4, user_state: 0, valid_type: 2 }],
+                    face_user: []
+                }
+            },
+            replyData: {
+                failed_user_id: [],
+                success_user_id: [20],
+                operation_type: 3,
+                time: 1787209289,
+                is_success: true
+            },
+            params: [
+                ...commonProtocolParams,
+                ["params.time", "integer(int64)", "发起时间，秒级时间戳，范围 1..9147483647。"],
+                ["params.operation_type", "integer(enum)", "操作类型：1 更新密码、2 删除密码、3 新增密码。"],
+                ["params.pwd_user[]", "array(struct)", "数字密码用户数组，物模型最大长度为 10；user_id、pwd、pwd_type、user_state、valid_type 为必填字段。"],
+                ["pwd_user[].pwd_type", "integer(enum)", "数字密码权限：1 管理员、2 胁迫、3 保姆、4 普通。"],
+                ["pwd_user[].user_state", "integer(enum)", "用户状态：0 正常使用、1 暂时禁用、2 永久禁用。"],
+                ["pwd_user[].valid_type", "integer(enum)", "有效类型：1 限期有效、2 长期有效。限期有效时应传 start_time 和 end_time。"],
+                ["params.card_user / fg_user / face_user", "array", "其他用户类型数组；示例无对应数据时传空数组。"]
+            ]
+        },
+        user_manage_card: {
+            name: "用户管理 · 卡片用户",
+            service: "user_manage",
+            description: "新增、修改或删除设备卡片用户。",
+            status: "协议示例 · 网关待接入",
+            topic: "$sys/VOKk9Z6sWQ/CMIoTIntegrationDevice2/thing/service/user_manage/invoke",
+            payload: {
+                id: "msg_003", version: "1.0",
+                params: {
+                    time: 1787209289, operation_type: 3,
+                    card_user: [{ end_time: 1726653710, start_time: 1724051710, user_id: 20002, card_no: "A1B2C3D4", usage_times: 100, user_state: 0, card_type: 1, valid_type: 1, type_id: 2 }],
+                    fg_user: [], pwd_user: [], face_user: []
+                }
+            },
+            replyData: {
+                failed_user_id: [],
+                success_user_id: [20002],
+                operation_type: 3,
+                time: 1787209289,
+                is_success: true
+            },
+            params: [
+                ...commonProtocolParams,
+                ["params.time", "integer(int64)", "发起时间，秒级时间戳，范围 1..9147483647。"],
+                ["params.operation_type", "integer(enum)", "操作类型：1 更新密码、2 删除密码、3 新增密码。"],
+                ["params.card_user[]", "array(struct)", "卡片用户数组，物模型最大长度为 10；user_id、card_no、user_state、valid_type 为必填字段。"],
+                ["card_user[].start_time / end_time", "integer(int64)", "限期有效卡片的起止秒级时间戳；取值下限为 -1。"],
+                ["card_user[].usage_times", "integer(int32)", "可用次数，物模型范围 -1..2147483647。"],
+                ["card_user[].user_state", "integer(enum)", "用户状态：0 正常使用、1 暂时禁用、2 永久禁用。"],
+                ["card_user[].valid_type", "integer(enum)", "有效类型：1 限期有效、2 长期有效。"],
+                ["params.fg_user / pwd_user / face_user", "array", "其他用户类型数组；示例无对应数据时传空数组。"]
+            ]
+        },
+        unlock_record: {
+            type: "event",
+            name: "开锁记录",
+            event: "unlock_record",
+            description: "指纹、密码、卡片、人脸、远程、机械钥匙或内开门开锁时，设备自动上报记录。",
+            status: "设备上报 · 用户订阅",
+            topic: "$sys/VOKk9Z6sWQ/CMIoTIntegrationDevice2/thing/event/post",
+            payload: {
+                id: "123", version: "1.0",
+                params: {
+                    unlock_record: {
+                        value: {
+                            is_immediate: true,
+                            record: [{ battery: 85, signal: 90, time: 1753718400, user_id: 3, user_type: 1, type_id: -1 }]
+                        }
+                    }
+                }
+            },
+            params: [
+                ...commonProtocolParams,
+                ["params.unlock_record.value.is_immediate", "boolean", "是否立即上报；事件发生时为 true。", true],
+                ["params.unlock_record.value.record", "array(struct)", "开锁记录数组。", true],
+                ["record[].battery", "integer", "电量百分比，最小值为 1，防止 2213 错误。", true],
+                ["record[].signal", "integer", "信号强度百分比，范围 0..100。", true],
+                ["record[].time", "uint32", "开锁时间，Unix 秒级时间戳。", true],
+                ["record[].user_id", "integer", "用户 ID；远程开锁时固定为 1。", true],
+                ["record[].user_type", "integer(enum)", "开锁类型：1 指纹、2 密码、64 卡片、4 远程密码、512 人脸、8 远程设备、128 机械钥匙、2048 内开门。", true],
+                ["record[].type_id", "integer", "固定为 -1。", true]
+            ]
+        },
+        dev_alarm: {
+            type: "event",
+            name: "告警事件",
+            event: "dev_alarm",
+            description: "发生防撬、多次错误、低电量、胁迫、门开超时或安全防护告警时，设备自动上报。",
+            status: "设备上报 · 用户订阅",
+            topic: "$sys/VOKk9Z6sWQ/CMIoTIntegrationDevice2/thing/event/post",
+            payload: {
+                id: "456", version: "1.0",
+                params: {
+                    dev_alarm: {
+                        value: {
+                            is_immediate: true,
+                            alarm: [{ alarm_type: 1, battery: 85, signal: 90, time: 1753718400 }]
+                        }
+                    }
+                }
+            },
+            params: [
+                ...commonProtocolParams,
+                ["params.dev_alarm.value.is_immediate", "boolean", "是否立即上报；告警发生时为 true。", true],
+                ["params.dev_alarm.value.alarm", "array(struct)", "告警记录数组。", true],
+                ["alarm[].alarm_type", "integer(enum)", "告警类型：1 撬门、2 多次错误、3 低电量、4 胁迫、7 安全防护（防撬带附件）、8 门开超时。", true],
+                ["alarm[].battery", "integer", "电量百分比。", true],
+                ["alarm[].signal", "integer", "信号强度百分比，范围 0..100。", true],
+                ["alarm[].time", "uint32", "告警时间，Unix 秒级时间戳。", true]
+            ]
+        },
+        dev_info: {
+            type: "event",
+            name: "设备信息上报",
+            event: "dev_info",
+            description: "MQTT 连接成功后设备自动上报一次，也可通过 dev_info 服务手动触发。",
+            status: "设备上报 · 用户订阅",
+            topic: "$sys/VOKk9Z6sWQ/CMIoTIntegrationDevice2/thing/event/post",
+            payload: {
+                id: "789", version: "1.0",
+                params: {
+                    dev_info: {
+                        value: {
+                            imei: "868381075665013", imsi: "46011...", iccid: "89860...",
+                            device_model: "2403SEML307CDLCN", device_version: "1.0.0",
+                            signal: 90, battery: 85, soft_version: "4.0.10", hard_version: "H1",
+                            rssi: -65, rsrp: -85, sinr: 10, pci: 123
+                        }
+                    }
+                }
+            },
+            params: [
+                ...commonProtocolParams,
+                ["params.dev_info.value.imei", "string", "设备 IMEI。", true],
+                ["params.dev_info.value.imsi", "string", "SIM 卡 IMSI。", true],
+                ["params.dev_info.value.iccid", "string", "SIM 卡 ICCID。", true],
+                ["params.dev_info.value.device_model", "string", "设备型号。", true],
+                ["params.dev_info.value.device_version", "string", "设备版本。", true],
+                ["params.dev_info.value.signal", "integer", "信号强度百分比，范围 0..100。", true],
+                ["params.dev_info.value.battery", "integer", "电量百分比。", true],
+                ["params.dev_info.value.soft_version", "string", "软件版本号。", true],
+                ["params.dev_info.value.hard_version", "string", "硬件版本号。", true],
+                ["params.dev_info.value.rssi", "integer", "接收信号强度指示值。", true],
+                ["params.dev_info.value.rsrp", "integer", "参考信号接收功率。", true],
+                ["params.dev_info.value.sinr", "integer", "信号与干扰加噪声比。", true],
+                ["params.dev_info.value.pci", "integer", "物理小区标识。", true]
+            ]
+        }
+    };
+
+    const protocolElements = {
+        name: document.getElementById("protocolName"),
+        description: document.getElementById("protocolDescription"),
+        badges: document.getElementById("protocolBadges"),
+        status: document.getElementById("protocolStatusBadge"),
+        topicLabel: document.getElementById("protocolTopicLabel"),
+        topic: document.getElementById("protocolTopic"),
+        replySection: document.getElementById("protocolReplySection"),
+        replyTopic: document.getElementById("protocolReplyTopic"),
+        warning: document.getElementById("protocolTopicWarning"),
+        paramsLabel: document.getElementById("protocolParamsLabel"),
+        params: document.getElementById("protocolParamList"),
+        resultTitle: document.getElementById("protocolResultTitle"),
+        payloadLabel: document.getElementById("protocolPayloadLabel"),
+        payload: document.getElementById("protocolPayload"),
+        responseBlock: document.getElementById("protocolResponseBlock"),
+        response: document.getElementById("protocolResponse"),
+        exampleDescription: document.getElementById("protocolExampleDescription"),
+        responseLabel: document.getElementById("protocolResponseLabel"),
+        note: document.getElementById("protocolResultNote"),
+        search: document.getElementById("protocolSearchInput")
+    };
+
+    function renderProtocol(protocolKey) {
+        const definition = protocolDefinitions[protocolKey];
+        if (!definition) return;
+        const isEvent = definition.type === "event";
+        protocolElements.name.textContent = definition.name;
+        protocolElements.description.innerHTML = isEvent
+            ? `订阅物模型事件 <code class="inline-code">${definition.event}</code>，${definition.description}`
+            : `调用物模型服务 <code class="inline-code">${definition.service}</code>，${definition.description}`;
+        protocolElements.badges.innerHTML = isEvent
+            ? `<span class="protocol-badge">DEVICE PUBLISH</span><span class="protocol-badge">USER SUBSCRIBE</span><span class="protocol-badge">QoS 1</span><span class="protocol-badge">Retain false</span><span id="protocolStatusBadge" class="protocol-badge"></span>`
+            : `<span class="protocol-badge">PUBLISH</span><span class="protocol-badge">SUBSCRIBE _reply</span><span class="protocol-badge">QoS 1</span><span class="protocol-badge">Retain false</span><span id="protocolStatusBadge" class="protocol-badge"></span>`;
+        protocolElements.status = document.getElementById("protocolStatusBadge");
+        protocolElements.status.textContent = definition.status;
+        protocolElements.topicLabel.textContent = isEvent ? "上行 Topic · 设备发布 / 用户订阅" : "下行 Topic · APP 发布";
+        protocolElements.topic.textContent = definition.topic;
+        protocolElements.replySection.hidden = isEvent;
+        protocolElements.replyTopic.textContent = `${definition.topic}_reply`;
+        protocolElements.warning.textContent = definition.warning || "";
+        protocolElements.warning.hidden = !definition.warning;
+        protocolElements.params.innerHTML = definition.params.map(([name, type, description, required]) => `
+            <div class="protocol-param">
+            <div class="protocol-param-name">${required ? '<span class="protocol-required">*</span> ' : ''}${name}</div>
+                <div class="protocol-param-type">${type}</div>
+                <div class="protocol-param-description">${description}</div>
+            </div>`).join("");
+        protocolElements.payload.textContent = JSON.stringify(definition.payload, null, 2);
+        protocolElements.paramsLabel.textContent = isEvent ? "事件 Payload 字段" : "Payload 输入参数";
+        protocolElements.resultTitle.textContent = isEvent ? "事件上报示例" : "请求与设备回复";
+        protocolElements.payloadLabel.textContent = isEvent ? "上行 JSON · 设备发布" : "下行 JSON · APP 发布";
+        protocolElements.responseBlock.hidden = isEvent;
+        if (!isEvent) {
+            protocolElements.response.textContent = JSON.stringify({
+                id: definition.payload.id,
+                code: 200,
+                msg: "",
+                data: definition.replyData
+            }, null, 2);
+        }
+        const gatewayImplemented = definition.gatewayImplemented === true;
+        protocolElements.exampleDescription.textContent = isEvent
+            ? "用户订阅 event/post Topic，接收设备主动上报的事件消息。"
+            : "APP 先订阅 invoke_reply Topic，再发布服务调用，并通过 id 关联设备回复。";
+        protocolElements.responseLabel.textContent = "上行 JSON · 设备回复";
+        protocolElements.note.textContent = isEvent
+            ? `用户需要订阅 ${definition.topic}。同一 Topic 承载多种事件，请根据 params 中的 ${definition.event} 字段识别并处理本事件。`
+            : gatewayImplemented
+                ? "APP 必须在发布前订阅 invoke_reply Topic。当前网关只实现 volume 下行校验；最终操作结果以设备回复中相同 id 的 code 和 data 为准。"
+                : "APP 必须在发布前订阅 invoke_reply Topic，并设置回复超时。最终操作结果以设备回复中相同 id 的 code 和 data 为准；当前命令网关尚未接入此服务。";
+        document.querySelectorAll("[data-protocol-key]").forEach((button) => {
+            button.classList.toggle("active", button.dataset.protocolKey === protocolKey);
+        });
+    }
+
+    document.querySelectorAll("[data-protocol-key]").forEach((button) => {
+        button.addEventListener("click", () => renderProtocol(button.dataset.protocolKey));
+    });
+    protocolElements.search.addEventListener("input", () => {
+        const query = protocolElements.search.value.trim().toLowerCase();
+        document.querySelectorAll("[data-protocol-key]").forEach((button) => {
+            button.hidden = query !== "" && !button.textContent.toLowerCase().includes(query);
+        });
+    });
+    renderProtocol("dev_config");
+
+    document.querySelectorAll("[data-copy-target]").forEach((button) => {
+        button.addEventListener("click", async () => {
+            const target = document.getElementById(button.dataset.copyTarget);
+            if (!target) return;
+            try {
+                await navigator.clipboard.writeText(target.textContent.trim());
+                const originalText = button.textContent;
+                button.textContent = "已复制";
+                setTimeout(() => { button.textContent = originalText; }, 1200);
+            } catch (error) {
+                button.textContent = "复制失败";
+            }
+        });
+    });
+})();
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/jsrsasign/lib/jsrsasign-all-min.js"></script>
+<script>
+(() => {
+    const PAGE_VERSION = "mqtt-demo-2026-08-24-principal-session-acl-v2";
+
+    const AUTH_MODE_TEXT = {
+        peerKey: {
+            help: '输入已注册 peer 的 <code>peerId</code> 和对应私钥。页面会自动生成 <code>timestamp:signature</code> 密码。',
+            principalLabel: 'Peer ID',
+            principalPlaceholder: '例如：4RziVpYaXqcKBetk8zfSKMTUtwNz3E2s7dfBt4SvYo2v',
+            credentialLabel: 'Private Key',
+            credentialPlaceholder: '支持 base64 DER、hex DER、PEM，或直接粘贴包含 id/private_key 的完整 peer JSON',
+            hints: [
+                '如果粘贴整个 peer JSON，会自动提取其中的 id 和 private_key。',
+                '浏览器端只会在本页内存中使用私钥，不写入本地存储。',
+                '当前 broker 默认使用 MQTT v3.1.1 over WebSocket。'
+            ],
+            metricLabel: '最近签名时间'
+        },
+        raw: {
+            help: '输入可信后端签发、包含 <code>client_id</code> 的 APP MQTT JWT；包含 <code>session_scopes</code> 时自动进入会话 Topic 模式。',
+            principalLabel: 'Username',
+            principalPlaceholder: '例如：user-1001',
+            credentialLabel: 'Password',
+            credentialPlaceholder: '例如：JWT',
+            hints: [
+                'Username 必须等于 JWT sub，Client ID 必须等于 JWT client_id。',
+                '页面只解码 JWT 做交互校验；签名与权限仍由 mqtt_authd 验证。',
+                '当前 broker 默认使用 MQTT v3.1.1 over WebSocket。'
+            ],
+            metricLabel: '最近登录时间'
+        }
+    };
+
+    const state = {
+        client: null,
+        authMode: "peerKey",
+        peerId: "",
+        clientId: "",
+        credentialSource: "",
+        signedAt: 0,
+        lastPassword: "",
+        tenantId: "",
+        sessionId: "",
+        allowedPublishTopic: "",
+        allowedSubscribeTopic: "",
+        currentSubscriptions: new Set(),
+        isConnecting: false,
+    };
+
+    const ui = {
+        brokerUrlInput: document.getElementById("brokerUrlInput"),
+        openLoginModalBtn: document.getElementById("openLoginModalBtn"),
+        closeLoginModalBtn: document.getElementById("closeLoginModalBtn"),
+        disconnectBtn: document.getElementById("disconnectBtn"),
+        quickConnectBtn: document.getElementById("quickConnectBtn"),
+        statusDot: document.getElementById("statusDot"),
+        statusText: document.getElementById("statusText"),
+        metricPeerId: document.getElementById("metricPeerId"),
+        metricClientId: document.getElementById("metricClientId"),
+        metricSignedAt: document.getElementById("metricSignedAt"),
+        subscribeTopicInput: document.getElementById("subscribeTopicInput"),
+        subscribeQosSelect: document.getElementById("subscribeQosSelect"),
+        subscribeBtn: document.getElementById("subscribeBtn"),
+        unsubscribeBtn: document.getElementById("unsubscribeBtn"),
+        subscribeAllowedBtn: document.getElementById("subscribeAllowedBtn"),
+        publishTopicInput: document.getElementById("publishTopicInput"),
+        publishQosSelect: document.getElementById("publishQosSelect"),
+        publishRetainSelect: document.getElementById("publishRetainSelect"),
+        publishPayloadInput: document.getElementById("publishPayloadInput"),
+        publishBtn: document.getElementById("publishBtn"),
+        publishJsonBtn: document.getElementById("publishJsonBtn"),
+        messageList: document.getElementById("messageList"),
+        logList: document.getElementById("logList"),
+        clearMessagesBtn: document.getElementById("clearMessagesBtn"),
+        clearLogsBtn: document.getElementById("clearLogsBtn"),
+        loginModal: document.getElementById("loginModal"),
+        authModeSelect: document.getElementById("authModeSelect"),
+        authModeHelp: document.getElementById("authModeHelp"),
+        principalLabel: document.getElementById("principalLabel"),
+        peerIdInput: document.getElementById("peerIdInput"),
+        clientIdInput: document.getElementById("clientIdInput"),
+        tenantIdInput: document.getElementById("tenantIdInput"),
+        sessionIdInput: document.getElementById("sessionIdInput"),
+        credentialLabel: document.getElementById("credentialLabel"),
+        credentialHints: document.getElementById("credentialHints"),
+        privateKeyInput: document.getElementById("privateKeyInput"),
+        loginMqttBtn: document.getElementById("loginMqttBtn"),
+        fillExampleBtn: document.getElementById("fillExampleBtn"),
+        metricAuthAtLabel: document.getElementById("metricAuthAtLabel"),
+        sessionScopeHelp: document.getElementById("sessionScopeHelp"),
+    };
+
+    function defaultBrokerUrl() {
+        const configuredUrl = new URLSearchParams(window.location.search).get("broker_url");
+        if (configuredUrl) return configuredUrl;
+        const host = window.location.hostname || "127.0.0.1";
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        return `${protocol}//${host}:18080/mqtt`;
+    }
+
+    function renderConnectionState() {
+        const connected = Boolean(state.client && state.client.connected);
+        ui.statusDot.className = "status-dot";
+        if (connected) {
+            ui.statusDot.classList.add("connected");
+            ui.statusText.textContent = "已连接";
+        } else if (state.isConnecting) {
+            ui.statusDot.classList.add("connecting");
+            ui.statusText.textContent = "连接中";
+        } else {
+            ui.statusText.textContent = "未连接";
+        }
+
+        ui.metricPeerId.textContent = state.peerId || "-";
+        ui.metricClientId.textContent = state.clientId || "-";
+        ui.metricSignedAt.textContent = state.signedAt ? new Date(state.signedAt * 1000).toLocaleString() : "-";
+        ui.metricAuthAtLabel.textContent = state.authMode === "raw" ? "最近登录时间" : "最近签名时间";
+
+        const actionable = connected;
+        ui.disconnectBtn.disabled = !connected;
+        ui.subscribeBtn.disabled = !actionable;
+        ui.unsubscribeBtn.disabled = !actionable;
+        ui.subscribeAllowedBtn.disabled = !actionable || !state.allowedSubscribeTopic;
+        ui.publishBtn.disabled = !actionable;
+        ui.publishJsonBtn.disabled = !actionable;
+        ui.quickConnectBtn.disabled = state.isConnecting || !state.peerId || !state.credentialSource;
+    }
+
+    function renderAuthMode() {
+        const mode = getSelectedAuthMode();
+        const config = AUTH_MODE_TEXT[mode] || AUTH_MODE_TEXT.peerKey;
+        state.authMode = mode;
+        ui.authModeHelp.innerHTML = config.help;
+        ui.principalLabel.textContent = config.principalLabel;
+        ui.peerIdInput.placeholder = config.principalPlaceholder;
+        ui.credentialLabel.textContent = config.credentialLabel;
+        ui.privateKeyInput.placeholder = config.credentialPlaceholder;
+        ui.metricAuthAtLabel.textContent = config.metricLabel;
+        ui.credentialHints.innerHTML = config.hints.map((hint) => `<li>${hint}</li>`).join("");
+        ui.sessionScopeHelp.innerHTML = mode === "raw"
+            ? 'Client ID 从 JWT 确认；没有 session scope 时使用当前用户的基础 Topic，有多个 scope 时请填写要使用的 <code>session_id</code>。'
+            : '设备端的会话 scope 必须先由可信后端写入 mqtt_authd，且 Tenant、Peer ID、Client ID、Session ID 必须完全一致。';
+    }
+
+    function getSelectedAuthMode() {
+        return ui.authModeSelect.value === "raw" ? "raw" : "peerKey";
+    }
+
+    function addLog(level, message) {
+        if (ui.logList.firstElementChild && ui.logList.firstElementChild.classList.contains("empty-state")) {
+            ui.logList.innerHTML = "";
+        }
+        const item = document.createElement("div");
+        item.className = "log-item";
+        const timestamp = new Date().toLocaleTimeString();
+        item.innerHTML = `<span class="log-meta">${timestamp} · ${level}</span><div class="log-message"></div>`;
+        item.querySelector(".log-message").textContent = message;
+        ui.logList.prepend(item);
+        while (ui.logList.children.length > 80) {
+            ui.logList.removeChild(ui.logList.lastElementChild);
+        }
+    }
+
+    function addMessage(topic, payload, meta) {
+        if (ui.messageList.firstElementChild && ui.messageList.firstElementChild.classList.contains("empty-state")) {
+            ui.messageList.innerHTML = "";
+        }
+        const item = document.createElement("div");
+        item.className = "message-item";
+        item.innerHTML = `
+            <span class="message-topic">${topic}</span>
+            <span class="message-meta">${meta}</span>
+            <div class="message-payload"></div>
+        `;
+        item.querySelector(".message-payload").textContent = payload;
+        ui.messageList.prepend(item);
+        while (ui.messageList.children.length > 50) {
+            ui.messageList.removeChild(ui.messageList.lastElementChild);
+        }
+    }
+
+    function openModal() {
+        ui.loginModal.classList.add("open");
+        ui.loginModal.setAttribute("aria-hidden", "false");
+        setTimeout(() => ui.peerIdInput.focus(), 0);
+    }
+
+    function closeModal() {
+        ui.loginModal.classList.remove("open");
+        ui.loginModal.setAttribute("aria-hidden", "true");
+    }
+
+    function clearMessages() {
+        ui.messageList.innerHTML = '<div class="empty-state">暂无消息。先登录，再订阅 Topic。</div>';
+    }
+
+    function clearLogs() {
+        ui.logList.innerHTML = '<div class="empty-state">暂无日志。</div>';
+    }
+
+    function ensureMqttLibrary() {
+        if (!window.mqtt || typeof window.mqtt.connect !== "function") {
+            throw new Error("mqtt.js 未加载成功。请确认页面能访问 jsDelivr CDN。");
+        }
+    }
+
+    function getWebCryptoSubtle() {
+        if (window.crypto && window.crypto.subtle && typeof window.crypto.subtle.importKey === "function" && typeof window.crypto.subtle.sign === "function") {
+            return window.crypto.subtle;
+        }
+        return null;
+    }
+
+    function hasJsrsasign() {
+        return Boolean(window.KEYUTIL && window.KJUR && window.KJUR.crypto && typeof window.KEYUTIL.getKey === "function");
+    }
+
+    function ensureSigningCapability() {
+        if (getWebCryptoSubtle() || hasJsrsasign()) {
+            return;
+        }
+
+        if (!window.isSecureContext) {
+            throw new Error("当前页面不是安全上下文，浏览器不会开放 Web Crypto，且 jsrsasign 也未加载成功。请确认页面能访问 jsDelivr CDN，或改用 HTTPS/localhost 访问本页。");
+        }
+
+        throw new Error("当前浏览器不支持 Web Crypto，且 jsrsasign 未加载成功，无法在页面内生成 MQTT 登录签名。请换用较新的 Chrome、Edge 或 Safari，并确认页面能访问 jsDelivr CDN。");
+    }
+
+    function normalizePrivateKeyInput(rawInput) {
+        let text = String(rawInput || "").trim();
+        if (!text) {
+            throw new Error("privateKey 不能为空");
+        }
+
+        let extractedPeerId = "";
+        if (text.startsWith("{")) {
+            let parsed;
+            try {
+                parsed = JSON.parse(text);
+            } catch (error) {
+                throw new Error("privateKey 看起来像 JSON，但解析失败");
+            }
+            extractedPeerId = typeof parsed.id === "string" ? parsed.id.trim() : "";
+            if (typeof parsed.private_key === "string" && parsed.private_key.trim()) {
+                text = parsed.private_key.trim();
+            } else if (typeof parsed.privateKey === "string" && parsed.privateKey.trim()) {
+                text = parsed.privateKey.trim();
+            } else {
+                throw new Error("JSON 中没有找到 private_key 或 privateKey 字段");
+            }
+        }
+
+        if (/-----BEGIN [A-Z ]+PRIVATE KEY-----/.test(text)) {
+            const headerMatch = text.match(/-----BEGIN ([A-Z ]+PRIVATE KEY)-----/);
+            const header = headerMatch ? headerMatch[1] : "PRIVATE KEY";
+            const body = text
+                .replace(/-----BEGIN [A-Z ]+PRIVATE KEY-----/g, "")
+                .replace(/-----END [A-Z ]+PRIVATE KEY-----/g, "")
+                .replace(/\s+/g, "");
+            const derBytes = base64ToBytes(body);
+            if (header === "RSA PRIVATE KEY") {
+                return { extractedPeerId, pkcs8Bytes: wrapPkcs1DerToPkcs8(derBytes) };
+            }
+            return { extractedPeerId, pkcs8Bytes: derBytes };
+        }
+
+        if (/^[0-9a-fA-F]+$/.test(text) && text.length % 2 === 0) {
+            return { extractedPeerId, pkcs8Bytes: wrapPkcs1DerToPkcs8(hexToBytes(text)) };
+        }
+
+        if (/^[A-Za-z0-9+/=\s]+$/.test(text)) {
+            return { extractedPeerId, pkcs8Bytes: wrapPkcs1DerToPkcs8(base64ToBytes(text.replace(/\s+/g, ""))) };
+        }
+
+        throw new Error("privateKey 格式不支持。请输入 base64、hex、PEM，或完整 peer JSON。");
+    }
+
+    function hexToBytes(hex) {
+        const clean = hex.replace(/\s+/g, "");
+        const bytes = new Uint8Array(clean.length / 2);
+        for (let index = 0; index < clean.length; index += 2) {
+            bytes[index / 2] = parseInt(clean.slice(index, index + 2), 16);
+        }
+        return bytes;
+    }
+
+    function base64ToBytes(base64) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index += 1) {
+            bytes[index] = binary.charCodeAt(index);
+        }
+        return bytes;
+    }
+
+    function bytesToHex(bytes) {
+        return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
+    }
+
+    function bytesToBase64(bytes) {
+        let binary = "";
+        const chunkSize = 0x8000;
+        for (let index = 0; index < bytes.length; index += chunkSize) {
+            const chunk = bytes.subarray(index, index + chunkSize);
+            binary += String.fromCharCode.apply(null, chunk);
+        }
+        return btoa(binary);
+    }
+
+    function bytesToPem(bytes, label) {
+        const base64 = bytesToBase64(bytes);
+        const wrapped = base64.match(/.{1,64}/g) || [];
+        return `-----BEGIN ${label}-----\n${wrapped.join("\n")}\n-----END ${label}-----`;
+    }
+
+    function encodeDerLength(length) {
+        if (length < 128) {
+            return Uint8Array.of(length);
+        }
+        const octets = [];
+        let value = length;
+        while (value > 0) {
+            octets.unshift(value & 0xff);
+            value >>= 8;
+        }
+        return Uint8Array.of(0x80 | octets.length, ...octets);
+    }
+
+    function derNode(tag, ...contents) {
+        const payloadLength = contents.reduce((sum, item) => sum + item.length, 0);
+        const header = Uint8Array.of(tag);
+        const lengthBytes = encodeDerLength(payloadLength);
+        const output = new Uint8Array(1 + lengthBytes.length + payloadLength);
+        output.set(header, 0);
+        output.set(lengthBytes, 1);
+        let offset = 1 + lengthBytes.length;
+        for (const item of contents) {
+            output.set(item, offset);
+            offset += item.length;
+        }
+        return output;
+    }
+
+    function wrapPkcs1DerToPkcs8(pkcs1Bytes) {
+        const version = Uint8Array.of(0x02, 0x01, 0x00);
+        const rsaOid = Uint8Array.of(0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01);
+        const nullParam = Uint8Array.of(0x05, 0x00);
+        const algorithm = derNode(0x30, rsaOid, nullParam);
+        const privateKey = derNode(0x04, pkcs1Bytes);
+        return derNode(0x30, version, algorithm, privateKey);
+    }
+
+    async function importPrivateKey(pkcs8Bytes) {
+        const subtle = getWebCryptoSubtle();
+        if (!subtle) {
+            throw new Error("Web Crypto 不可用");
+        }
+        return subtle.importKey(
+            "pkcs8",
+            pkcs8Bytes.buffer.slice(pkcs8Bytes.byteOffset, pkcs8Bytes.byteOffset + pkcs8Bytes.byteLength),
+            {
+                name: "RSASSA-PKCS1-v1_5",
+                hash: "SHA-256",
+            },
+            false,
+            ["sign"]
+        );
+    }
+
+    async function signPayload(pkcs8Bytes, payload) {
+        ensureSigningCapability();
+
+        const subtle = getWebCryptoSubtle();
+        if (subtle) {
+            const cryptoKey = await importPrivateKey(pkcs8Bytes);
+            const signature = await subtle.sign("RSASSA-PKCS1-v1_5", cryptoKey, payload);
+            return bytesToHex(new Uint8Array(signature));
+        }
+
+        const pem = bytesToPem(pkcs8Bytes, "PRIVATE KEY");
+        const privateKey = window.KEYUTIL.getKey(pem);
+        const signer = new window.KJUR.crypto.Signature({ alg: "SHA256withRSA" });
+        signer.init(privateKey);
+        signer.updateHex(bytesToHex(payload));
+        return signer.sign();
+    }
+
+    async function buildPassword(privateKeySource) {
+        const { extractedPeerId, pkcs8Bytes } = normalizePrivateKeyInput(privateKeySource);
+        const timestamp = Math.floor(Date.now() / 1000);
+        const payload = new Uint8Array(4);
+        new DataView(payload.buffer).setUint32(0, timestamp, true);
+        const signatureHex = await signPayload(pkcs8Bytes, payload);
+        return {
+            extractedPeerId,
+            timestamp,
+            password: `${timestamp}:${signatureHex}`,
+        };
+    }
+
+    function buildClientId(peerId) {
+        const suffix = Math.random().toString(16).slice(2, 8);
+        const tail = peerId ? peerId.slice(-6) : "guest";
+        return `webdemo-${tail}-${suffix}`;
+    }
+
+    function decodeJwtPayload(token) {
+        const parts = String(token || "").trim().split(".");
+        if (parts.length !== 3) {
+            throw new Error("APP Password 必须是完整 JWT");
+        }
+        try {
+            const normalized = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+            const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+            const bytes = Uint8Array.from(atob(padded), (character) => character.charCodeAt(0));
+            return JSON.parse(new TextDecoder().decode(bytes));
+        } catch (error) {
+            throw new Error(`JWT payload 解析失败：${error.message}`);
+        }
+    }
+
+    function requireTopicSegment(value, label) {
+        const segment = String(value || "").trim();
+        if (!segment || /[\/+\#]/.test(segment)) {
+            throw new Error(`${label} 不能为空且不能包含 /、+、#`);
+        }
+        return segment;
+    }
+
+    function findJwtSessionScope(payload, requestedSessionId) {
+        const scopes = Array.isArray(payload.session_scopes) ? payload.session_scopes : [];
+        if (!scopes.length) {
+            return null;
+        }
+        const requested = String(requestedSessionId || "").trim();
+        if (!requested && scopes.length !== 1) {
+            throw new Error("JWT 包含多个 session scope，请填写 Session ID");
+        }
+        const scope = requested
+            ? scopes.find((item) => item && String(item.session_id || "").trim() === requested)
+            : scopes[0];
+        if (!scope) {
+            throw new Error(`JWT 不包含 Session ID=${requested} 的 scope`);
+        }
+        return scope;
+    }
+
+    function buildSessionTopics(tenantId, sessionId, publishDirection, subscribeDirection) {
+        const tenant = requireTopicSegment(tenantId, "Tenant ID");
+        const session = requireTopicSegment(sessionId, "Session ID");
+        if (!["app", "device"].includes(publishDirection) || !["app", "device"].includes(subscribeDirection) || publishDirection === subscribeDirection) {
+            throw new Error("session scope 的 publish/subscribe 方向无效");
+        }
+        const base = `rt/v1/${tenant}/session/${session}`;
+        return {
+            tenantId: tenant,
+            sessionId: session,
+            publishTopic: `${base}/${publishDirection}`,
+            subscribeTopic: `${base}/${subscribeDirection}`,
+        };
+    }
+
+    function buildPrincipalTopics(tenantId, resourceType, principalId) {
+        const tenant = requireTopicSegment(tenantId, "Tenant ID");
+        const principal = requireTopicSegment(principalId, resourceType === "device" ? "Peer ID" : "Username");
+        const base = `rt/v1/${tenant}/${resourceType}/${principal}`;
+        return {
+            tenantId: tenant,
+            sessionId: "",
+            publishTopic: `${base}/event`,
+            subscribeTopic: `${base}/command`,
+        };
+    }
+
+    async function buildConnectParams(authMode, peerIdInput, privateKeyInput, clientIdInput, tenantIdInput, sessionIdInput) {
+        if (authMode === "raw") {
+            const username = (peerIdInput || "").trim();
+            if (!username) {
+                throw new Error("Username 不能为空");
+            }
+            const password = String(privateKeyInput || "").trim();
+            if (!password) {
+                throw new Error("Password 不能为空");
+            }
+            const payload = decodeJwtPayload(password);
+            if (!payload.sub || payload.sub !== username) {
+                throw new Error(`Username 必须等于 JWT sub（${payload.sub || "缺失"}）`);
+            }
+            if (!payload.client_id) {
+                throw new Error("JWT 缺少 client_id");
+            }
+            const enteredClientId = String(clientIdInput || "").trim();
+            if (enteredClientId && enteredClientId !== payload.client_id) {
+                throw new Error(`Client ID 必须等于 JWT client_id（${payload.client_id}）`);
+            }
+            const now = Math.floor(Date.now() / 1000);
+            if (!Number.isFinite(Number(payload.exp)) || Number(payload.exp) <= now) {
+                throw new Error("JWT 已过期或缺少有效 exp");
+            }
+            const scope = findJwtSessionScope(payload, sessionIdInput);
+            if (!scope) {
+                return {
+                    username,
+                    clientId: String(payload.client_id).trim(),
+                    credentialSource: password,
+                    password,
+                    signedAt: Number(payload.iat) || now,
+                    ...buildPrincipalTopics(tenantIdInput || "starchart", "user", username),
+                };
+            }
+            if (scope.principal_id && scope.principal_id !== username) {
+                throw new Error("JWT scope principal_id 与 Username 不一致");
+            }
+            if (scope.client_id && scope.client_id !== payload.client_id) {
+                throw new Error("JWT scope client_id 与 JWT client_id 不一致");
+            }
+            if (!Number.isFinite(Number(scope.expires_at)) || Number(scope.expires_at) <= now) {
+                throw new Error("JWT session scope 已过期或缺少有效 expires_at");
+            }
+            const tenantId = String(scope.tenant_id || tenantIdInput || "starchart").trim();
+            const topics = buildSessionTopics(tenantId, scope.session_id, scope.publish, scope.subscribe);
+            return {
+                username,
+                clientId: String(payload.client_id).trim(),
+                credentialSource: password,
+                password,
+                signedAt: Number(payload.iat) || now,
+                ...topics,
+            };
+        }
+
+        const { extractedPeerId, timestamp, password } = await buildPassword(privateKeyInput);
+        const peerId = (peerIdInput || extractedPeerId || "").trim();
+        if (!peerId) {
+            throw new Error("Peer ID 不能为空");
+        }
+        const clientId = String(clientIdInput || "").trim();
+        if (!clientId) {
+            throw new Error("设备端 Client ID 不能为空，且必须与后端 grant scope 时使用的 client_id 一致");
+        }
+        const sessionId = String(sessionIdInput || "").trim();
+        const topics = sessionId
+            ? buildSessionTopics(tenantIdInput, sessionId, "app", "device")
+            : buildPrincipalTopics(tenantIdInput, "device", peerId);
+        return {
+            username: peerId,
+            clientId,
+            credentialSource: privateKeyInput,
+            password,
+            signedAt: timestamp,
+            ...topics,
+        };
+    }
+
+    async function connectWithCredentials(authMode, peerIdInput, privateKeyInput, clientIdInput, tenantIdInput, sessionIdInput) {
+        ensureMqttLibrary();
+
+        const brokerUrl = (ui.brokerUrlInput.value || "").trim();
+        if (!brokerUrl) {
+            throw new Error("Broker WebSocket 地址不能为空");
+        }
+
+        state.isConnecting = true;
+        renderConnectionState();
+
+        try {
+            const params = await buildConnectParams(authMode, peerIdInput, privateKeyInput, clientIdInput, tenantIdInput, sessionIdInput);
+
+            if (state.client) {
+                try {
+                    state.client.end(true);
+                } catch (error) {
+                    addLog("WARN", `旧连接关闭异常：${error.message}`);
+                }
+                state.client = null;
+            }
+
+            state.authMode = authMode;
+            state.peerId = params.username;
+            state.clientId = params.clientId;
+            state.credentialSource = params.credentialSource;
+            state.signedAt = params.signedAt;
+            state.lastPassword = params.password;
+            state.tenantId = params.tenantId;
+            state.sessionId = params.sessionId;
+            state.allowedPublishTopic = params.publishTopic;
+            state.allowedSubscribeTopic = params.subscribeTopic;
+            state.currentSubscriptions.clear();
+            ui.tenantIdInput.value = params.tenantId;
+            ui.sessionIdInput.value = params.sessionId;
+            ui.clientIdInput.value = params.clientId;
+            ui.subscribeTopicInput.value = params.subscribeTopic;
+            ui.publishTopicInput.value = params.publishTopic;
+            renderConnectionState();
+
+            addLog("INFO", `准备连接 ${brokerUrl}，username=${params.username}，clientId=${params.clientId}，session=${params.sessionId}，mode=${authMode}`);
+            if (authMode === "raw" && !params.sessionId) {
+                addLog("INFO", `JWT 未携带 session_scopes，使用用户基础 Topic：publish=${params.publishTopic}，subscribe=${params.subscribeTopic}`);
+            }
+
+            await new Promise((resolve, reject) => {
+                const client = window.mqtt.connect(brokerUrl, {
+                    protocolVersion: 4,
+                    clean: true,
+                    clientId: params.clientId,
+                    username: params.username,
+                    password: params.password,
+                    reconnectPeriod: 0,
+                    connectTimeout: 10000,
+                    keepalive: 30,
+                });
+
+                let settled = false;
+
+                const finishResolve = () => {
+                    if (!settled) {
+                        settled = true;
+                        resolve();
+                    }
+                };
+
+                const finishReject = (error) => {
+                    if (!settled) {
+                        settled = true;
+                        reject(error);
+                    }
+                };
+
+                client.on("connect", (packet) => {
+                    state.client = client;
+                    state.isConnecting = false;
+                    renderConnectionState();
+                    addLog("INFO", `MQTT 连接成功，sessionPresent=${Boolean(packet && packet.sessionPresent)}`);
+                    finishResolve();
+                });
+
+                client.on("message", (topic, payload, packet) => {
+                    const meta = `QoS ${packet.qos} · retain=${packet.retain} · ${new Date().toLocaleTimeString()}`;
+                    addMessage(topic, payload.toString(), meta);
+                });
+
+                client.on("packetsend", (packet) => {
+                    if (packet && packet.cmd === "publish") {
+                        addLog("INFO", `PUBLISH 数据包已发送：topic=${packet.topic}，QoS=${packet.qos}，retain=${packet.retain}，messageId=${packet.messageId || "none"}`);
+                    }
+                });
+
+                client.on("packetreceive", (packet) => {
+                    if (packet && packet.cmd === "disconnect") {
+                        addLog("WARN", `收到 Broker DISCONNECT 数据包：reasonCode=${packet.reasonCode !== undefined ? packet.reasonCode : "unknown"}`);
+                    }
+                });
+
+                client.on("disconnect", (packet) => {
+                    const reasonCode = packet && packet.reasonCode !== undefined ? packet.reasonCode : "unknown";
+                    const reason = packet && packet.properties && packet.properties.reasonString
+                        ? `，reason=${packet.properties.reasonString}`
+                        : "";
+                    addLog("WARN", `Broker 发送 DISCONNECT：reasonCode=${reasonCode}${reason}`);
+                });
+
+                client.on("close", () => {
+                    const wasConnected = Boolean(state.client && state.client.connected);
+                    if (state.client === client) {
+                        state.client = null;
+                    }
+                    state.isConnecting = false;
+                    renderConnectionState();
+                    if (wasConnected || settled) {
+                        addLog("INFO", "MQTT 连接已关闭");
+                    }
+                });
+
+                client.on("reconnect", () => {
+                    addLog("INFO", "MQTT 正在尝试重连");
+                });
+
+                client.on("offline", () => {
+                    addLog("WARN", "MQTT 客户端进入离线状态");
+                });
+
+                client.on("error", (error) => {
+                    const code = error && error.code ? `，code=${error.code}` : "";
+                    addLog("ERROR", `MQTT 错误：${error.message}${code}`);
+                    state.isConnecting = false;
+                    renderConnectionState();
+                    if (!settled) {
+                        client.end(true);
+                    }
+                    finishReject(error);
+                });
+            });
+        } catch (error) {
+            state.isConnecting = false;
+            renderConnectionState();
+            throw error;
+        }
+    }
+
+    function requireClient() {
+        if (!state.client || !state.client.connected) {
+            throw new Error("MQTT 尚未连接");
+        }
+        return state.client;
+    }
+
+    async function subscribeTopic(topic, qos) {
+        const client = requireClient();
+        const topicFilter = topic.trim();
+        if (!topicFilter) {
+            throw new Error("订阅 Topic 不能为空");
+        }
+        if (topicFilter !== state.allowedSubscribeTopic) {
+            addLog("WARN", `正在测试非默认订阅 Topic，授权结果由 Broker ACL 决定：${topicFilter}`);
+        }
+        await new Promise((resolve, reject) => {
+            client.subscribe(topicFilter, { qos }, (error, granted) => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                state.currentSubscriptions.add(topicFilter);
+                const grantedQos = granted && granted[0] ? granted[0].qos : qos;
+                addLog("INFO", `订阅成功：${topicFilter}，QoS=${grantedQos}`);
+                resolve();
+            });
+        });
+    }
+
+    async function unsubscribeTopic(topic) {
+        const client = requireClient();
+        const topicFilter = topic.trim();
+        if (!topicFilter) {
+            throw new Error("取消订阅 Topic 不能为空");
+        }
+        if (topicFilter !== state.allowedSubscribeTopic) {
+            addLog("WARN", `正在取消非默认订阅 Topic：${topicFilter}`);
+        }
+        await new Promise((resolve, reject) => {
+            client.unsubscribe(topicFilter, (error) => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                state.currentSubscriptions.delete(topicFilter);
+                addLog("INFO", `取消订阅成功：${topicFilter}`);
+                resolve();
+            });
+        });
+    }
+
+    async function publishMessage(topic, payload, qos, retain) {
+        const client = requireClient();
+        const publishTopic = topic.trim();
+        if (!publishTopic) {
+            throw new Error("发布 Topic 不能为空");
+        }
+        if (publishTopic.includes("+") || publishTopic.includes("#")) {
+            throw new Error("发布 Topic 不能包含通配符");
+        }
+        if (publishTopic !== state.allowedPublishTopic) {
+            addLog("WARN", `正在测试非默认发布 Topic，授权结果由 Broker ACL 决定：${publishTopic}`);
+        }
+        if (retain) {
+            throw new Error("会话 ACL 不允许 Retain 消息");
+        }
+        addLog("INFO", `准备发布：topic=${publishTopic}，QoS=${qos}，retain=${retain}，payloadBytes=${new TextEncoder().encode(payload).length}`);
+        await new Promise((resolve, reject) => {
+            client.publish(publishTopic, payload, { qos, retain }, (error) => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                addLog("INFO", `消息已发布：${publishTopic}`);
+                resolve();
+            });
+        });
+    }
+
+    function fillExample() {
+        if (getSelectedAuthMode() === "raw") {
+            ui.peerIdInput.value = "user-11025";
+            ui.clientIdInput.value = "";
+            ui.sessionIdInput.value = "";
+            ui.privateKeyInput.value = "请粘贴后端签发的 session-bound JWT";
+            addLog("INFO", "已填充 APP 会话登录模板。请替换成真实 JWT，Client ID 和 Session ID 将从 JWT 校验。");
+            return;
+        }
+        ui.peerIdInput.value = "4RziVpYaXqcKBetk8zfSKMTUtwNz3E2s7dfBt4SvYo2v";
+        ui.clientIdInput.value = buildClientId(ui.peerIdInput.value);
+        ui.tenantIdInput.value = "starchart";
+        ui.sessionIdInput.value = "请替换为已授权的-session-id";
+        ui.privateKeyInput.value = "MIIEpAIBAAKCAQEAoxqNkme1caDgBgnwfhM5MQeQb+db+dEITNob0NY8in5zbZEg5ZIl2AKyTSpWgp7dnNCfuYTZ4O1RPtTzgNOp/QGF9iRnybjKWQiSNzRDhu39AcsssG2hV5yPc/1yYD4/NVanikoGqp9EXIyGYgx1J7iG6dS0jO4G7YJhPGO7NihTHT/KyyNdT10Qv55TLwTTxjD0i2tdPaE/p/BcJce7i2MEsN4uzxcPzQFKSn+wPLwJINABowFq3YJPReIUNPlqD0t+yo8k0SlTcC+5TMZ6PZyCaYzNubSUO0Zl9uy1C5fD+lxKmGGjpTzJ3CsCat12w4F+d/v/yh5PxnmpvV6MfQIDAQABAoIBAEfKMjIUr8pZ0wEVcuMrNusbtzlqDhPBK/QXtFKRWYhj7A536JDjaQDQ/wXz8qv/nO+e7A7OKNBV5ILRXHSBtbqE5x/WGlCxo27Y1PKzcF19dvVJJlxphLB5WrLlBWjTPSMPByNZPeHvxDkwKR4S+aYIFGnrk6TMSARWdNIN26MUHM5AsvDSKK4na0SXSvyixeulkFHlBSrmj1NO/lGx/oMEg6U2Z/L51p9/4YdOHrlYHzwC4WOPS2D8ePjBxhczGULCJF8v0X9Uk1oZTn9zC+A2OsAjOE9cFDCEFWZ4FuqpMe9+4/kl+1FjIHBwNv31y+x/38mahRaNiE9w0AvrUgkCgYEAyudpejQIhhGXRjwnbIMkpdVCljVy4UkcfKnaWoHowUeRn8SeFUqbfeyBzRetyEnl9gq5QgkfE0DLyT/5T58lI4muhp3nz42rYxOLq7Pxy6wfNbcclpt4BkCkwlxBctGLn8F6VDpZXgm0LgejjNQz2eUSGb54saWyFLMAC6JkKPsCgYEAzcjpz5LsiXXlOv3Xf0gXLhRT+/kqLFT4rmL4i7BmOfVo3Km1E2rNGLUdKnU5Qr3dSx67WB43wwwFXeqM/u/O6Ttxj+J+rkjaBFLxnOGkms1SZAQ6XAytzMn6UOMOQLGSMpfVs8VnxwY0KJG7c9RsbnghFJczVoKvOimHE4LoFucCgYEAj2E9mNxCFbNCiaAiX7zAXes4VXrJhkcquTExmnloZ4RSdGr1JqiE/lPtWWddJ0aJGPd0+CQH8Iv+NWVeoJQeI2G8kWXuFC3RKX77WMccm0cy+rs9mXOdOhXeF3YnzaIjny2SawicdCY5S7mcKf0d8uC7jLObCDXFhHkFFDOZwZcCgYEAm95aewdmcpgCETTETXxlUlnDY0/PSdTyp+P/Lo9mXvArhThmF1cGEnjcppQz0wHM5GFatdvtkKdCSWinc1Jg/vgvhDSij5BO0oegypt++mIazfcF3UMdQcia+TmCSi419mxbSdd0S6O/ThtUSN/VYbdMFzSPhi9mWj+qOHUnJnECgYAOwAgKl3twnpr7axtm7GAmMhsNt5qeHnw0wqIF+rGOse2jL7oPagLRqxZvQddwE0V9NWTxCMDG4bHpJ6AcJ9BsDSHzsSiVVWlf9LIXokf92DY53D7qvjw+nfCuEaqwwAmB6elTHBVnhE/SOOoKMMrgtd7EjwbVFXfLhrJSwUlP9Q==";
+    }
+
+    async function onLoginClick() {
+        try {
+            await connectWithCredentials(getSelectedAuthMode(), ui.peerIdInput.value, ui.privateKeyInput.value, ui.clientIdInput.value, ui.tenantIdInput.value, ui.sessionIdInput.value);
+            closeModal();
+        } catch (error) {
+            addLog("ERROR", `登录失败：${error.message}`);
+            alert(`登录失败：${error.message}`);
+        }
+    }
+
+    async function onQuickConnect() {
+        try {
+            await connectWithCredentials(state.authMode, state.peerId, state.credentialSource, state.clientId, state.tenantId, state.sessionId);
+        } catch (error) {
+            addLog("ERROR", `重连失败：${error.message}`);
+            alert(`重连失败：${error.message}`);
+        }
+    }
+
+    async function onSubscribeClick() {
+        try {
+            await subscribeTopic(ui.subscribeTopicInput.value, Number(ui.subscribeQosSelect.value));
+        } catch (error) {
+            addLog("ERROR", `订阅失败：${error.message}`);
+            alert(`订阅失败：${error.message}`);
+        }
+    }
+
+    async function onUnsubscribeClick() {
+        try {
+            await unsubscribeTopic(ui.subscribeTopicInput.value);
+        } catch (error) {
+            addLog("ERROR", `取消订阅失败：${error.message}`);
+            alert(`取消订阅失败：${error.message}`);
+        }
+    }
+
+    async function onPublishClick(payloadOverride) {
+        try {
+            await publishMessage(
+                ui.publishTopicInput.value,
+                payloadOverride !== undefined ? payloadOverride : ui.publishPayloadInput.value,
+                Number(ui.publishQosSelect.value),
+                ui.publishRetainSelect.value === "true"
+            );
+        } catch (error) {
+            addLog("ERROR", `发布失败：${error.message}`);
+            alert(`发布失败：${error.message}`);
+        }
+    }
+
+    function disconnectClient() {
+        if (!state.client) {
+            return;
+        }
+        addLog("INFO", "正在主动断开 MQTT 连接");
+        state.client.end(true);
+        state.client = null;
+        state.isConnecting = false;
+        renderConnectionState();
+    }
+
+    function bindEvents() {
+        ui.loginMqttBtn.addEventListener("click", onLoginClick);
+        ui.authModeSelect.addEventListener("change", renderAuthMode);
+        ui.fillExampleBtn.addEventListener("click", fillExample);
+        ui.quickConnectBtn.addEventListener("click", onQuickConnect);
+        ui.disconnectBtn.addEventListener("click", disconnectClient);
+        ui.subscribeBtn.addEventListener("click", onSubscribeClick);
+        ui.unsubscribeBtn.addEventListener("click", onUnsubscribeClick);
+        ui.subscribeAllowedBtn.addEventListener("click", () => {
+            ui.subscribeTopicInput.value = state.allowedSubscribeTopic;
+            onSubscribeClick();
+        });
+        ui.publishBtn.addEventListener("click", () => onPublishClick());
+        ui.publishJsonBtn.addEventListener("click", () => onPublishClick(JSON.stringify({
+            kind: "web-demo",
+            peerId: state.peerId,
+            at: new Date().toISOString(),
+            message: "hello from mqtt web demo"
+        }, null, 2)));
+        ui.clearMessagesBtn.addEventListener("click", clearMessages);
+        ui.clearLogsBtn.addEventListener("click", clearLogs);
+    }
+
+    function init() {
+        ui.brokerUrlInput.value = defaultBrokerUrl();
+        bindEvents();
+        renderAuthMode();
+        renderConnectionState();
+        addLog("INFO", `页面版本：${PAGE_VERSION}`);
+        addLog("INFO", `页面已初始化，默认 Broker 地址：${ui.brokerUrlInput.value}`);
+        if (!window.isSecureContext) {
+            if (hasJsrsasign()) {
+                addLog("WARN", "当前页面通过非 HTTPS 上下文打开。浏览器不会提供 Web Crypto，页面将回退到 jsrsasign 生成 MQTT 登录签名。");
+            } else {
+                addLog("WARN", "当前页面通过非 HTTPS 上下文打开，浏览器不会提供 Web Crypto；如果 jsrsasign 也未加载，MQTT 登录会失败。请确认页面能访问 jsDelivr CDN。");
+            }
+        }
+    }
+
+    init();
+})();
+</script>
+</body>
+</html>
