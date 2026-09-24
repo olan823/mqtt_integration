@@ -1918,6 +1918,18 @@
     };
 
     function defaultBrokerUrl() {
+        const configuredUrl = new URLSearchParams(window.location.search).get("broker_url");
+        if (configuredUrl) {
+            try {
+                const parsedUrl = new URL(configuredUrl);
+                if (parsedUrl.protocol === "ws:" || parsedUrl.protocol === "wss:") {
+                    return parsedUrl.toString();
+                }
+            } catch (_error) {
+                // Fall back to the current host when the configured URL is invalid.
+            }
+        }
+
         const host = window.location.hostname || "127.0.0.1";
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         return `${protocol}//${host}:18080/mqtt`;
