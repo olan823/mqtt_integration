@@ -2536,8 +2536,8 @@
         if (!topicFilter) {
             throw new Error("订阅 Topic 不能为空");
         }
-        if (topicFilter !== state.allowedSubscribeTopic) {
-            addLog("WARN", `正在测试非默认订阅 Topic，授权结果由 Broker ACL 决定：${topicFilter}`);
+        if (!isAllowedSubscribeTopic(topicFilter)) {
+            throw new Error("越权的主题操作");
         }
         await new Promise((resolve, reject) => {
             client.subscribe(topicFilter, { qos }, (error, granted) => {
@@ -2584,8 +2584,8 @@
         if (publishTopic.includes("+") || publishTopic.includes("#")) {
             throw new Error("发布 Topic 不能包含通配符");
         }
-        if (publishTopic !== state.allowedPublishTopic) {
-            addLog("WARN", `正在测试非默认发布 Topic，授权结果由 Broker ACL 决定：${publishTopic}`);
+        if (!isAllowedPublishTopic(publishTopic)) {
+            throw new Error("越权的主题操作");
         }
         if (retain) {
             throw new Error("会话 ACL 不允许 Retain 消息");
@@ -2601,6 +2601,20 @@
                 resolve();
             });
         });
+    }
+
+    function isAllowedPublishTopic(topic) {
+        if (topic === state.allowedPublishTopic) {
+            return true;
+        }
+        return /^\$sys\/VOKk9Z6sWQ\/CMIoTIntegrationDevice2\/thing\/service\/(dev_config|dev_manage|server_remote|time_sync|user_manage)\/invoke$/.test(topic);
+    }
+
+    function isAllowedSubscribeTopic(topic) {
+        if (topic === state.allowedSubscribeTopic) {
+            return true;
+        }
+        return /^\$sys\/VOKk9Z6sWQ\/CMIoTIntegrationDevice2\/thing\/service\/(dev_config|dev_manage|server_remote|time_sync|user_manage)\/invoke_reply$/.test(topic);
     }
 
     function fillExample() {
